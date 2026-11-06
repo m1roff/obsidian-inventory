@@ -41,13 +41,17 @@ export class StructureModal extends Modal {
         .filter((issue) => issue.fix !== null && !isReplacement(issue.fix))
         .map((issue) => issue.id),
     );
-    this.render();
+    this.render(false);
   }
 
-  private render(): void {
+  /** A tick redraws the tree, so the scroll position is kept; a new check starts from the top. */
+  private render(keepScroll = true): void {
     const report = this.report;
     if (!report) return;
     const { contentEl } = this;
+    const scrolled = keepScroll
+      ? (contentEl.querySelector<HTMLElement>(".inventory-ui__structure-tree")?.scrollTop ?? 0)
+      : 0;
     contentEl.empty();
 
     contentEl.createEl("p", {
@@ -64,6 +68,8 @@ export class StructureModal extends Modal {
         this.close();
       },
     });
+
+    holder.scrollTop = scrolled;
 
     const chosen = report.fixable.filter((issue) => this.selection.has(issue.id));
     new Setting(contentEl)
