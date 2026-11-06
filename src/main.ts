@@ -31,6 +31,7 @@ import { VaultCoverWriter } from "./obsidian/VaultCoverWriter";
 import { FileDebugLog } from "./obsidian/FileDebugLog";
 import { VaultPlaceCoverWriter } from "./obsidian/VaultPlaceCoverWriter";
 import { PhotoAttacher } from "./ui/PhotoAttacher";
+import { VaultPhotoSectionChooser } from "./ui/PhotoSectionChooser";
 import { Haptics } from "./ui/Haptics";
 import { installToggleHaptics } from "./ui/ToggleHaptics";
 import { DeviceHaptics } from "./obsidian/DeviceHaptics";
@@ -95,13 +96,24 @@ export default class InventoryUiPlugin extends Plugin {
       () => preferences.get().settings.debugLog,
       clock,
     );
+    const photoSections = new VaultPhotoSectionChooser(this.app);
     const itemPhotos = new PhotoAttacher(
       new AttachCoverService(new VaultCoverWriter(this.app, debugLog), clock),
       null,
       debugLog,
+      true,
+      photoSections,
     );
     const placeCovers = new VaultPlaceCoverWriter(this.app, debugLog);
     const placePhotos = new PhotoAttacher(new AttachCoverService(placeCovers, clock), placeCovers, debugLog);
+    // The place's own note takes several photos; the tile on the dashboard has one cover, so one photo.
+    const placeCardPhotos = new PhotoAttacher(
+      new AttachCoverService(placeCovers, clock),
+      placeCovers,
+      debugLog,
+      true,
+      photoSections,
+    );
     const references = new VaultReferenceLists(this.app, folders);
     const referenceWriter = new VaultReferenceWriter(this.app, folders);
     const addReference = new AddReferenceService(references, referenceWriter, idGenerator);
@@ -293,7 +305,7 @@ export default class InventoryUiPlugin extends Plugin {
     new CardToolbar(this, {
       sources: [
         new ItemBarSource(repository, actions, qrLabels, () => folders.items),
-        new PlaceBarSource(references, placeQr, () => folders.locations, placeItems),
+        new PlaceBarSource(references, placeQr, () => folders.locations, placeItems, placeCardPhotos),
       ],
       openInventory: (fromLeaf) => {
         void this.openInventory(fromLeaf);

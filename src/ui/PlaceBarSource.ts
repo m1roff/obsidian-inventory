@@ -2,6 +2,7 @@ import { Place } from "../domain/Place";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { isInFolder } from "../obsidian/InventoryFolders";
 import { BarButton, BarPanel, BarSource } from "./CardBar";
+import { PhotoAttacher } from "./PhotoAttacher";
 import { PlaceItemsPanel } from "./PlaceItemsPanel";
 import { PlaceQr } from "./PlaceQr";
 import { STRINGS } from "./strings";
@@ -13,6 +14,7 @@ export class PlaceBarSource implements BarSource {
     private readonly placeQr: PlaceQr,
     private readonly placesFolder: () => string,
     private readonly items: PlaceItemsPanel,
+    private readonly photos: PhotoAttacher,
   ) {}
 
   buttonsFor(path: string): BarButton[] | null {
@@ -20,6 +22,14 @@ export class PlaceBarSource implements BarSource {
     if (!this.placeAt(path)) return null;
 
     return [
+      {
+        id: "photos",
+        label: STRINGS.addPhoto,
+        icon: "image-plus",
+        enabled: true,
+        // Called straight from the tap: the system photo picker opens before any await.
+        run: () => this.photos.attach(path, undefined, { chooseSection: true, cover: "ifEmpty" }),
+      },
       {
         id: "qr",
         label: STRINGS.qrButton,

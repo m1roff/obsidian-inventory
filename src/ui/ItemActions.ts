@@ -86,6 +86,14 @@ export class ItemActions {
     }).open();
   }
 
+  /**
+   * Photos added from the item card's bar: asks for the section when the note has several, and
+   * leaves a cover that is already set alone.
+   */
+  addPhotosFromCard(path: string): Promise<void> {
+    return this.deps.photos.attach(path, undefined, { chooseSection: true, cover: "ifEmpty" });
+  }
+
   /** The photo of an item card: picked by a tap on its cover tile. */
   addPhoto(entry: InventoryEntry, onBusy?: (busy: boolean) => void): Promise<void> {
     return this.deps.photos.attach(entry.item.path, onBusy);

@@ -233,9 +233,15 @@ export const STRINGS = {
   // Row actions
   addMore: "Add more",
   move: "Move",
-  addPhoto: "Add photo",
-  savingPhoto: "Saving photo...",
-  photoSaved: "Photo added",
+  addPhoto: "Add photos",
+  photoSectionTitle: (count: number): string =>
+    count === 1 ? "Add 1 photo under" : `Add ${count} photos under`,
+  photoSectionNew: "New section at the end of the note",
+  photoSectionName: "Section name",
+  photoSectionNameEmpty: "Type a name for the new section",
+  photoSectionAdd: "Add",
+  savingPhotos: (count: number) => (count === 1 ? "Saving photo..." : `Saving ${count} photos...`),
+  photosSaved: (count: number) => (count === 1 ? "Photo added" : `${count} photos added`),
   photoFailed: "Could not save the photo. See the developer console.",
 
   // Add more (restock)

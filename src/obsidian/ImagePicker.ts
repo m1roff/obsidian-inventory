@@ -14,22 +14,27 @@ const JPEG_QUALITY = 0.85;
 /**
  * Opens the system photo picker (camera or library on a phone). Must be called
  * straight from a tap handler, before any `await`, or the browser blocks it.
+ * With `multiple` the library lets the owner tick several photos at once; the result is empty
+ * when the picker was closed without a choice.
  */
-export function pickImageFile(log: DebugLog = NO_DEBUG_LOG): Promise<File | null> {
+export function pickImageFiles(multiple: boolean, log: DebugLog = NO_DEBUG_LOG): Promise<File[]> {
   return new Promise((resolve) => {
     const input = createEl("input", { type: "file" });
     input.accept = "image/*";
+    input.multiple = multiple;
     let settled = false;
     const stopWatching: Array<() => void> = [];
-    const finish = (file: File | null, how: string): void => {
+    const finish = (files: File[], how: string): void => {
       if (settled) return;
       settled = true;
       for (const stop of stopWatching) stop();
-      log.write("picker", how, file ? { name: file.name, size: file.size, type: file.type } : undefined);
-      resolve(file);
+      log.write("picker", how, {
+        files: files.map((file) => ({ name: file.name, size: file.size, type: file.type })),
+      });
+      resolve(files);
     };
-    input.addEventListener("change", () => finish(input.files?.[0] ?? null, "change fired"));
-    input.addEventListener("cancel", () => finish(null, "cancel fired"));
+    input.addEventListener("change", () => finish(Array.from(input.files ?? []), "change fired"));
+    input.addEventListener("cancel", () => finish([], "cancel fired"));
 
     if (log.enabled) {
       // Only a weak reference: a strong one would keep the input alive and hide the very thing
@@ -58,6 +63,11 @@ export function pickImageFile(log: DebugLog = NO_DEBUG_LOG): Promise<File | null
     }
     input.click();
   });
+}
+
+/** One photo: the same picker without multiple choice. `null` when it was closed without one. */
+export async function pickImageFile(log: DebugLog = NO_DEBUG_LOG): Promise<File | null> {
+  return (await pickImageFiles(false, log))[0] ?? null;
 }
 
 /** Shrinks big camera photos to keep the vault and sync small; falls back to the original. */

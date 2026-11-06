@@ -32,7 +32,15 @@ export class ItemBarSource implements BarSource {
       }),
     );
 
-    // Not a stock action, so it lives only here (the parity rule is about stock changes).
+    // Not stock actions, so they live only here (the parity rule is about stock changes).
+    const photos: BarButton = {
+      id: "photos",
+      label: STRINGS.addPhoto,
+      icon: "image-plus",
+      enabled: true,
+      // Called straight from the tap: the system photo picker opens before any await.
+      run: () => this.actions.addPhotosFromCard(path),
+    };
     const qr: BarButton = {
       id: "qr",
       label: STRINGS.qrButton,
@@ -40,7 +48,7 @@ export class ItemBarSource implements BarSource {
       enabled: true,
       run: () => this.qrLabels.openItem(this.entryAt(path) ?? entry),
     };
-    return [...stock, qr];
+    return [...stock, photos, qr];
   }
 
   private entryAt(path: string): InventoryEntry | undefined {

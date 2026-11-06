@@ -1637,3 +1637,62 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 .inventory-ui__settings .inventory-ui__settings-tab.is-danger {
   color: var(--text-error);
 }
+
+/* The window that asks which section of a note the photos go under */
+.inventory-ui__section-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+  max-height: min(40vh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-bottom: var(--size-2-2);
+}
+
+/* With the keyboard up the list gives way, so the name field and the buttons stay in view. */
+.inventory-ui__kb-modal.is-typing .inventory-ui__section-list {
+  max-height: 18vh;
+}
+
+.inventory-ui .inventory-ui__section-row,
+.inventory-ui__section-modal .inventory-ui__section-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--size-4-2) var(--size-4-3);
+  padding-left: calc(var(--size-4-3) + var(--section-depth, 0) * var(--size-4-4));
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-primary);
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventory-ui__section-modal .inventory-ui__section-row.is-selected {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+.inventory-ui__section-rank {
+  flex: none;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui__section-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inventory-ui__section-modal .inventory-ui__section-row--new {
+  flex-wrap: wrap;
+  margin-bottom: var(--size-4-3);
+}
+
+.inventory-ui__section-modal .inventory-ui__section-name {
+  flex: 1 1 100%;
+  font-size: 16px;
+}

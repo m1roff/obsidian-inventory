@@ -1,9 +1,19 @@
 import { Notice, Platform } from "obsidian";
 import { AttachCoverService } from "../domain/AttachCoverService";
-import { CoverRemover } from "../domain/CoverWriter";
+import { CoverImage, CoverMode, CoverRemover } from "../domain/CoverWriter";
+import { DEFAULT_PHOTO_HEADING } from "../domain/PhotoSections";
 import { describeError, DebugLog, NO_DEBUG_LOG } from "../domain/DebugLog";
-import { pickImageFile, prepareImage } from "../obsidian/ImagePicker";
+import { pickImageFiles, prepareImage } from "../obsidian/ImagePicker";
+import { PhotoSectionChooser } from "./PhotoSectionChooser";
 import { STRINGS } from "./strings";
+
+/** How one request to add photos differs from the plain one. */
+export interface AttachRequest {
+  /** Show the note's sections and wait for the owner to confirm where the photos go. */
+  readonly chooseSection?: boolean;
+  /** What the first photo does to the cover; replaces it by default. */
+  readonly cover?: CoverMode;
+}
 
 /**
  * Picks a photo and puts it on a note as its cover, with the notices and the busy state.
@@ -15,13 +25,20 @@ export class PhotoAttacher {
     private readonly service: AttachCoverService,
     private readonly remover: CoverRemover | null = null,
     private readonly log: DebugLog = NO_DEBUG_LOG,
+    /** Whether the picker lets the owner choose several photos at once (an item, not a place with one cover). */
+    private readonly multiple = false,
+    private readonly sections: PhotoSectionChooser | null = null,
   ) {}
 
   /**
    * Must be called straight from a tap or a menu choice: the system photo picker is blocked
    * unless it opens before the first `await`.
    */
-  async attach(notePath: string, onBusy?: (busy: boolean) => void): Promise<void> {
+  async attach(
+    notePath: string,
+    onBusy?: (busy: boolean) => void,
+    request: AttachRequest = {},
+  ): Promise<void> {
     this.log.write("photo", "attach requested", {
       note: notePath,
       mobile: Platform.isMobile,
@@ -29,19 +46,31 @@ export class PhotoAttacher {
       phone: Platform.isPhone,
       tablet: Platform.isTablet,
     });
-    const file = await pickImageFile(this.log);
-    if (!file) {
+    const files = await pickImageFiles(this.multiple, this.log);
+    if (files.length === 0) {
       this.log.write("photo", "nothing was picked, stopping");
       return;
     }
 
+    // Asked after the picker, not before: the system picker has to open straight from the tap.
+    let heading = DEFAULT_PHOTO_HEADING;
+    if (request.chooseSection && this.sections) {
+      const chosen = await this.sections.choose(notePath, files.length);
+      if (chosen === null) {
+        this.log.write("photo", "no section chosen, stopping");
+        return;
+      }
+      heading = chosen;
+    }
+
     onBusy?.(true);
-    const notice = new Notice(STRINGS.savingPhoto, 0);
+    const notice = new Notice(STRINGS.savingPhotos(files.length), 0);
     try {
-      const image = await prepareImage(file, this.log);
-      await this.service.attach(notePath, image);
-      this.log.write("photo", "attached", { note: notePath });
-      new Notice(STRINGS.photoSaved);
+      const images: CoverImage[] = [];
+      for (const file of files) images.push(await prepareImage(file, this.log));
+      await this.service.attachAll(notePath, images, { cover: request.cover ?? "replace", heading });
+      this.log.write("photo", "attached", { note: notePath, count: images.length, heading });
+      new Notice(STRINGS.photosSaved(images.length));
     } catch (error) {
       console.error(error);
       this.log.write("photo", "attach failed", { error: describeError(error) });
