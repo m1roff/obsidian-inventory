@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { holeRect, labelLines, logoModules } from "../../src/domain/QrLabel";
+import { holeRect, labelLines, logoModules, qrFileName } from "../../src/domain/QrLabel";
 
 describe("labelLines", () => {
   it("shows the id first, then the caption, only what is switched on", () => {
@@ -34,5 +34,21 @@ describe("holeRect", () => {
       const hole = holeRect(size, 0.6);
       expect(hole.width * hole.height).toBeLessThan(size * size * 0.2);
     }
+  });
+});
+
+describe("qrFileName", () => {
+  it("puts the note's name after the id, so labels can be told apart", () => {
+    expect(qrFileName("AB-CD-123", "Hex Key 2.0 (130mm)")).toBe("AB-CD-123_Hex Key 2.0 (130mm).png");
+    expect(qrFileName("LC-KM-482", "Набор пружин")).toBe("LC-KM-482_Набор пружин.png");
+  });
+
+  it("drops characters a file name cannot carry and tidies the spaces", () => {
+    expect(qrFileName("AB-1", ' Box: "A"/B  #1 ')).toBe("AB-1_Box A B 1.png");
+  });
+
+  it("falls back to the id alone when the name leaves nothing, and cuts a very long name", () => {
+    expect(qrFileName("AB-1", " /:* ")).toBe("AB-1.png");
+    expect(qrFileName("AB-1", "x".repeat(200))).toBe(`AB-1_${"x".repeat(60)}.png`);
   });
 });

@@ -248,7 +248,6 @@ export default class InventoryUiPlugin extends Plugin {
     });
 
     if (__DEV__) {
-      this.addReloadCommand();
       addDevVaultCommands(this);
       addHapticsProbe(this);
       addHoldLab(this);
@@ -291,22 +290,6 @@ export default class InventoryUiPlugin extends Plugin {
     for (const leaf of this.app.workspace.getLeavesOfType(INVENTORY_VIEW_TYPE)) {
       if (leaf.view instanceof InventoryView) leaf.view.refresh();
     }
-  }
-
-  /** Development only: re-reads main.js from disk without restarting Obsidian. */
-  private addReloadCommand(): void {
-    this.addCommand({
-      id: "dev-reload-plugin",
-      name: "Reload plugin (dev)",
-      callback: () => {
-        void (async () => {
-          const id = this.manifest.id;
-          await this.app.plugins.disablePlugin(id);
-          await this.app.plugins.enablePlugin(id);
-          new Notice(`Reloaded ${id}`);
-        })();
-      },
-    });
   }
 
   /**

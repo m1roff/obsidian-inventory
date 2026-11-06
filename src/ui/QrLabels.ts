@@ -3,7 +3,7 @@ import { InventoryEntry } from "../domain/InventoryEntry";
 import { buildItemLink, buildPlaceLink } from "../domain/ItemLink";
 import { Place } from "../domain/Place";
 import { QrEncoder } from "../domain/QrCode";
-import { QrLabelOptions } from "../domain/QrLabel";
+import { QrLabelOptions, qrFileName } from "../domain/QrLabel";
 import { QrStyle, qrPalette } from "../domain/QrStyle";
 import { guardKeyboard } from "./KeyboardGuard";
 import { QrLogo } from "./QrLogo";
@@ -177,7 +177,7 @@ class QrLabelModal extends Modal {
       new Notice(STRINGS.qrNotReady);
       return;
     }
-    const file = new File([blob], `${this.subject.id}.png`, { type: "image/png" });
+    const file = new File([blob], qrFileName(this.subject.id, this.subject.name), { type: "image/png" });
 
     if (navigator.canShare?.({ files: [file] })) {
       navigator.share({ files: [file] }).catch((error: unknown) => {

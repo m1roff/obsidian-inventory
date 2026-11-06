@@ -44,3 +44,22 @@ export function holeRect(codeSize: number, extraBelow: number): HoleRect {
     height: side + 2 + Math.round(extraBelow * side),
   };
 }
+
+/** The longest part of a shared file's name that comes from the note's name. */
+const FILE_NAME_LIMIT = 60;
+
+/**
+ * The name of the shared picture: the id, then the name of the note after an underscore, so
+ * several labels in a chat or a folder can be told apart. Characters a file name cannot carry
+ * are dropped; with nothing usable left, the id alone is used.
+ */
+export function qrFileName(id: string, name: string): string {
+  const printable = Array.from(name, (char) => (char.charCodeAt(0) < 32 ? " " : char)).join("");
+  const cleaned = printable
+    .replace(/[\\/:*?"<>|#^[\]]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, FILE_NAME_LIMIT)
+    .trim();
+  return cleaned === "" ? `${id}.png` : `${id}_${cleaned}.png`;
+}
