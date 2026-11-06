@@ -6,7 +6,7 @@ import {
   ViewStateResult,
   WorkspaceLeaf,
 } from "obsidian";
-import { AddReferenceError, AddReferenceService } from "../domain/AddReferenceService";
+import { AddReferenceService } from "../domain/AddReferenceService";
 import { DefaultLocation } from "../domain/DefaultLocation";
 import { InventoryEntry } from "../domain/InventoryEntry";
 import { InventoryRepository } from "../domain/InventoryRepository";
@@ -39,7 +39,6 @@ import { ItemRow } from "./ItemRow";
 import { LocationBoardPanel } from "./LocationBoardPanel";
 import { NewLocationDialog } from "./NewLocationDialog";
 import { PlaceTagsEditor } from "./PlaceTagsEditor";
-import { promptForName } from "./NamePrompt";
 import { PlaceQr } from "./PlaceQr";
 import { scanQrFromPhoto } from "./QrScanner";
 import { INVENTORY_ICON_ID } from "./InventoryIcon";
