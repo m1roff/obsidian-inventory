@@ -132,11 +132,19 @@
 }
 
 .inventory-ui .inventory-ui__sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
   min-height: 36px;
   height: auto;
   padding: 0 var(--size-4-3);
   border-radius: var(--radius-m);
   font-size: var(--font-ui-small);
+}
+
+.inventory-ui .inventory-ui__sort-button .svg-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .inventory-ui .inventory-ui__sort-button.is-active {

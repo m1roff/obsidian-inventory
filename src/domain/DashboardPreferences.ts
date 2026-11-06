@@ -48,6 +48,8 @@ export interface DashboardPreferences {
   /** Folded (the default): only the first few items show. Open: all of them. */
   readonly itemsExpanded: boolean;
   readonly itemsSort: SortMode;
+  /** Runs the items sort against its natural direction (oldest first). */
+  readonly itemsSortReversed: boolean;
 }
 
 /** Factory state: also what "reset" goes back to. */
@@ -68,6 +70,7 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
   locations: parseLocationPreferences(null),
   itemsExpanded: false,
   itemsSort: DEFAULT_SORT_MODE,
+  itemsSortReversed: false,
 };
 
 /** A whole number within the allowed range; anything else gives the default. */
@@ -97,7 +100,7 @@ export function parseDefaultLocation(raw: unknown): string {
 
 export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
   if (typeof raw !== "object" || raw === null) return DEFAULT_DASHBOARD_PREFERENCES;
-  const { settings, locations, itemsExpanded, itemsSort } = raw as Record<string, unknown>;
+  const { settings, locations, itemsExpanded, itemsSort, itemsSortReversed } = raw as Record<string, unknown>;
   const own = (typeof settings === "object" && settings !== null ? settings : {}) as Record<
     string,
     unknown
@@ -122,6 +125,7 @@ export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
     locations: parseLocationPreferences(locations),
     itemsExpanded: itemsExpanded === true,
     itemsSort: parseSortMode(itemsSort),
+    itemsSortReversed: itemsSortReversed === true,
   };
 }
 

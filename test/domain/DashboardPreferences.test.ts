@@ -24,7 +24,8 @@ describe("parseDashboardPreferences", () => {
     const parsed = parseDashboardPreferences({
       locations: { pinned: ["A"], sort: "updated", expanded: true },
     });
-    expect(parsed.locations).toEqual({ pinned: ["A"], sort: "updated", expanded: true });
+    expect(parsed.locations).toEqual({ pinned: ["A"], sort: "updated", reversed: false, expanded: true });
+    expect(parsed.itemsSortReversed).toBe(false);
     expect(parsed.itemsExpanded).toBe(false);
   });
 });
@@ -60,9 +61,10 @@ describe("settings", () => {
   it("has factory defaults that a reset can restore", () => {
     expect(DEFAULT_DASHBOARD_PREFERENCES).toEqual({
       settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light" },
-      locations: { pinned: [], sort: "alpha", expanded: false },
+      locations: { pinned: [], sort: "alpha", reversed: false, expanded: false },
       itemsExpanded: false,
       itemsSort: "created",
+      itemsSortReversed: false,
     });
     expect(parseDashboardPreferences(DEFAULT_DASHBOARD_PREFERENCES)).toEqual(
       DEFAULT_DASHBOARD_PREFERENCES,

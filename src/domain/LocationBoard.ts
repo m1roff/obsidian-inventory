@@ -13,24 +13,28 @@ export interface LocationPreferences {
   /** Pinned locations, in the order the owner arranged them. */
   readonly pinned: readonly string[];
   readonly sort: LocationSortMode;
+  /** Runs the sort against its natural direction (Z to A, oldest first). */
+  readonly reversed: boolean;
   readonly expanded: boolean;
 }
 
 export const DEFAULT_LOCATION_PREFERENCES: LocationPreferences = {
   pinned: [],
   sort: "alpha",
+  reversed: false,
   expanded: false,
 };
 
 export function parseLocationPreferences(raw: unknown): LocationPreferences {
   if (typeof raw !== "object" || raw === null) return DEFAULT_LOCATION_PREFERENCES;
-  const { pinned, sort, expanded } = raw as Record<string, unknown>;
+  const { pinned, sort, reversed, expanded } = raw as Record<string, unknown>;
 
   return {
     pinned: Array.isArray(pinned)
       ? pinned.filter((name): name is string => typeof name === "string")
       : [],
     sort: LOCATION_SORT_MODES.find((mode) => mode === sort) ?? "alpha",
+    reversed: reversed === true,
     expanded: expanded === true,
   };
 }
@@ -40,8 +44,8 @@ export interface LocationTile {
   readonly path: string;
   /** Empty until the place has an id. */
   readonly id: string;
-  /** Units still in stock there. */
-  readonly quantity: number;
+  /** How many different items have units in stock there (not how many units). */
+  readonly itemCount: number;
   /** Vault path of the place's photo, or null. */
   readonly cover: string | null;
   readonly pinned: boolean;
@@ -50,7 +54,7 @@ export interface LocationTile {
 }
 
 interface Stats {
-  quantity: number;
+  itemCount: number;
   lastAddedAt: number;
   lastUpdatedAt: number;
 }
@@ -72,7 +76,7 @@ export class LocationBoard {
         name: place.name,
         path: place.path,
         id: place.id,
-        quantity: own?.quantity ?? 0,
+        itemCount: own?.itemCount ?? 0,
         cover: place.cover,
         pinned: pinnedNames.includes(place.name),
         lastAddedAt: own?.lastAddedAt ?? 0,
@@ -85,7 +89,7 @@ export class LocationBoard {
     const rest = places
       .filter((place) => !pinnedNames.includes(place.name))
       .map(tile)
-      .sort((a, b) => this.compare(a, b, preferences.sort));
+      .sort((a, b) => this.compare(a, b, preferences.sort, preferences.reversed));
 
     return [...pinnedNames.map((name) => tile(placeNamed(name))), ...rest];
   }
@@ -93,13 +97,18 @@ export class LocationBoard {
   private statsByLocation(entries: readonly InventoryEntry[]): Map<string, Stats> {
     const stats = new Map<string, Stats>();
     for (const entry of entries) {
+      // An item with several positions in one place still counts once there.
+      const counted = new Set<string>();
       for (const position of entry.positions) {
         const own = stats.get(position.location) ?? {
-          quantity: 0,
+          itemCount: 0,
           lastAddedAt: 0,
           lastUpdatedAt: 0,
         };
-        if (position.isAvailable()) own.quantity += position.quantity;
+        if (position.isAvailable() && !counted.has(position.location)) {
+          counted.add(position.location);
+          own.itemCount++;
+        }
         own.lastAddedAt = Math.max(own.lastAddedAt, position.createdAt);
         own.lastUpdatedAt = Math.max(own.lastUpdatedAt, position.updatedAt);
         stats.set(position.location, own);
@@ -108,12 +117,13 @@ export class LocationBoard {
     return stats;
   }
 
-  private compare(a: LocationTile, b: LocationTile, mode: LocationSortMode): number {
+  private compare(a: LocationTile, b: LocationTile, mode: LocationSortMode, reversed: boolean): number {
+    const direction = reversed ? -1 : 1;
     const byName = a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-    if (mode === "alpha") return byName;
+    if (mode === "alpha") return byName * direction;
     const date = (tile: LocationTile): number =>
       mode === "added" ? tile.lastAddedAt : tile.lastUpdatedAt;
-    return date(b) - date(a) || byName;
+    return (date(b) - date(a)) * direction || byName;
   }
 }
 

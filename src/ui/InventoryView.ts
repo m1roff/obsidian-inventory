@@ -27,7 +27,7 @@ import { findPlaceById, parseScanned } from "../domain/ItemLink";
 import { QrDecoder } from "../domain/QrCode";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { SimilarItemFinder } from "../domain/SimilarItemFinder";
-import { SortMode } from "../domain/SortMode";
+import { chooseSort, SortMode } from "../domain/SortMode";
 import {
   AddItemDefaults,
   AddItemFormState,
@@ -452,13 +452,17 @@ export class InventoryView extends ItemView {
     for (const [mode, label, hint] of options) {
       const button = group.createEl("button", {
         cls: "inventory-ui__sort-button",
-        text: label,
         attr: { "aria-label": hint },
       });
+      button.createSpan({ text: label });
+      button.createSpan({ cls: "inventory-ui__sort-arrow" });
       button.addEventListener("click", () => {
+        const prefs = this.deps.preferences.get();
+        const next = chooseSort({ mode: prefs.itemsSort, reversed: prefs.itemsSortReversed }, mode);
         this.deps.preferences.set({
-          ...this.deps.preferences.get(),
-          itemsSort: mode,
+          ...prefs,
+          itemsSort: next.mode,
+          itemsSortReversed: next.reversed,
         });
         this.updateSortButtons();
         this.renderList();
@@ -469,10 +473,17 @@ export class InventoryView extends ItemView {
   }
 
   private updateSortButtons(): void {
+    const { itemsSort, itemsSortReversed } = this.deps.preferences.get();
     for (const [mode, button] of this.sortButtons) {
-      const active = mode === this.deps.preferences.get().itemsSort;
+      const active = mode === itemsSort;
       button.toggleClass("is-active", active);
       button.setAttribute("aria-pressed", String(active));
+      // The chosen button shows which way it runs; pressing it again flips the direction.
+      const arrow = button.querySelector<HTMLElement>(".inventory-ui__sort-arrow");
+      if (arrow) {
+        arrow.empty();
+        if (active) setIcon(arrow, itemsSortReversed ? "arrow-up" : "arrow-down");
+      }
     }
   }
 
@@ -527,6 +538,7 @@ export class InventoryView extends ItemView {
     const shown = this.deps.sorter.sort(
       this.deps.search.filter(pool, this.query),
       this.deps.preferences.get().itemsSort,
+      this.deps.preferences.get().itemsSortReversed,
     );
 
     const { itemsExpanded: expanded, settings } = this.deps.preferences.get();

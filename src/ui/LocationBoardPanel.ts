@@ -1,5 +1,6 @@
 import { App, Menu, Notice, setIcon } from "obsidian";
 import { visibleWhenFolded } from "../domain/DashboardPreferences";
+import { chooseSort } from "../domain/SortMode";
 import {
   LOCATION_SORT_MODES,
   LocationPreferences,
@@ -129,13 +130,19 @@ export class LocationBoardPanel {
       attr: { role: "group", "aria-label": STRINGS.sortLabel },
     });
     for (const mode of LOCATION_SORT_MODES) {
+      const active = mode === preferences.sort;
       const button = group.createEl("button", {
         cls: "inventory-ui__sort-button",
-        text: SORT_LABELS[mode],
-        attr: { "aria-pressed": String(mode === preferences.sort) },
+        attr: { "aria-pressed": String(active) },
       });
-      button.toggleClass("is-active", mode === preferences.sort);
-      button.addEventListener("click", () => this.update({ sort: mode }));
+      button.createSpan({ text: SORT_LABELS[mode] });
+      // The chosen button shows which way it runs; pressing it again flips the direction.
+      if (active) setIcon(button.createSpan(), preferences.reversed ? "arrow-up" : "arrow-down");
+      button.toggleClass("is-active", active);
+      button.addEventListener("click", () => {
+        const next = chooseSort({ mode: preferences.sort, reversed: preferences.reversed }, mode);
+        this.update({ sort: next.mode, reversed: next.reversed });
+      });
     }
   }
 
@@ -152,10 +159,10 @@ export class LocationBoardPanel {
     if (tile.pinned) setIcon(top.createSpan(), "pin");
     body.createDiv({
       cls:
-        tile.quantity > 0
+        tile.itemCount > 0
           ? "inventory-ui__board-tile-qty"
           : "inventory-ui__board-tile-qty inventory-ui__board-tile-qty--zero",
-      text: String(tile.quantity),
+      text: String(tile.itemCount),
     });
     const hold = this.attachGestures(body, tile);
     body.addEventListener("click", () => {

@@ -31,10 +31,16 @@ const board = new LocationBoard();
 const placesOf = (names: string[]) => names.map((name) => ({ name, path: `${name}.md`, id: "", cover: null }));
 
 describe("LocationBoard", () => {
-  it("counts only the units still in stock, and shows empty locations too", () => {
+  it("counts the items that have units in stock there, not the units, and shows empty locations too", () => {
     const tiles = board.tiles(placesOf(locations), entries, prefs());
-    const qty = Object.fromEntries(tiles.map((t) => [t.name, t.quantity]));
-    expect(qty).toEqual({ Shelf: 2, Box: 4, Printer: 1, Empty: 0 });
+    const counts = Object.fromEntries(tiles.map((t) => [t.name, t.itemCount]));
+    // Key has only a consumed position on the shelf, so it does not count there.
+    expect(counts).toEqual({ Shelf: 1, Box: 1, Printer: 1, Empty: 0 });
+  });
+
+  it("counts an item once even when it has several positions in one place", () => {
+    const twice = [entry("Twice", [position("Shelf", 1, "stored", 1, 1), position("Shelf", 5, "stored", 2, 2)])];
+    expect(board.tiles(placesOf(["Shelf"]), twice, prefs())[0]?.itemCount).toBe(1);
   });
 
   it("sorts alphabetically by default", () => {
@@ -91,11 +97,24 @@ describe("parseLocationPreferences", () => {
   });
 
   it("reads valid values", () => {
-    expect(parseLocationPreferences({ pinned: ["A", 3, "B"], sort: "updated", expanded: true })).toEqual({
+    expect(parseLocationPreferences({ pinned: ["A", 3, "B"], sort: "updated", reversed: true, expanded: true })).toEqual({
       pinned: ["A", "B"],
       sort: "updated",
+      reversed: true,
       expanded: true,
     });
+  });
+});
+
+describe("sort direction", () => {
+  it("runs A to Z, and Z to A when reversed", () => {
+    expect(names(board.tiles(placesOf(locations), entries, prefs()))).toEqual(["Box", "Empty", "Printer", "Shelf"]);
+    expect(names(board.tiles(placesOf(locations), entries, prefs({ reversed: true })))).toEqual(["Shelf", "Printer", "Empty", "Box"]);
+  });
+
+  it("puts the oldest first for a date sort when reversed", () => {
+    expect(names(board.tiles(placesOf(locations), entries, prefs({ sort: "added" })))).toEqual(["Printer", "Box", "Shelf", "Empty"]);
+    expect(names(board.tiles(placesOf(locations), entries, prefs({ sort: "added", reversed: true })))).toEqual(["Empty", "Shelf", "Box", "Printer"]);
   });
 });
 
