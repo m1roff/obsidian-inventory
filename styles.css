@@ -1,0 +1,1534 @@
+/*
+ * Obsidian styles every <button> (pill shape, filled background, fixed height),
+ * and on mobile even more so. Selectors here are prefixed with `.inventory-ui`
+ * to outrank that, so our buttons keep a plain, moderately rounded look.
+ */
+
+/*
+ * The dashboard's own container. Obsidian puts its own padding on `.view-content`
+ * (more on mobile), which left a strip above a sticky toolbar where rows showed
+ * through. So nothing is sticky here: the toolbar is a fixed row, and only
+ * `.inventory-ui__scroll` below it scrolls (sort switch and list).
+ */
+.workspace-leaf-content .view-content.inventory-ui {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  padding: 0 var(--size-4-3);
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.inventory-ui .inventory-ui__toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--size-4-2);
+  padding-top: var(--size-4-3);
+}
+
+.inventory-ui .inventory-ui__scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Room below the last row for the floating navigation bar on mobile. */
+.inventory-ui .inventory-ui__bottom-spacer {
+  flex: 0 0 auto;
+  height: 0;
+}
+
+.is-mobile .inventory-ui .inventory-ui__bottom-spacer {
+  height: calc(var(--safe-area-inset-bottom, 34px) + 96px);
+}
+
+.inventory-ui .inventory-ui__search-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inventory-ui .inventory-ui__search-wrap .inventory-ui__search {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.inventory-ui .inventory-ui__search::-webkit-search-cancel-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* The round accent "x" at the end of the search field: clears it in one tap. */
+.inventory-ui .inventory-ui__search-clear {
+  position: absolute;
+  top: 50%;
+  right: var(--size-4-2);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  box-shadow: none;
+}
+
+.inventory-ui .inventory-ui__search-clear.is-visible {
+  display: flex;
+}
+
+.inventory-ui .inventory-ui__search-clear .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.inventory-ui .inventory-ui__search {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-medium);
+}
+
+.inventory-ui .inventory-ui__add {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-m);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inventory-ui .inventory-ui__info {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-1) var(--size-4-2);
+}
+
+.inventory-ui .inventory-ui__sort {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.inventory-ui .inventory-ui__sort-label {
+  margin-right: var(--size-4-1);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui .inventory-ui__sort-button {
+  min-height: 36px;
+  height: auto;
+  padding: 0 var(--size-4-3);
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui .inventory-ui__sort-button.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.inventory-ui .inventory-ui__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui .inventory-ui__empty {
+  padding: var(--size-4-6);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* One item */
+
+.inventory-ui .inventory-ui__row {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+}
+
+.inventory-ui .inventory-ui__row-top {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  padding: var(--size-4-3);
+}
+
+.inventory-ui .inventory-ui__row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 72px;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  /* Obsidian sets nowrap on buttons: without this long text runs off the card. */
+  white-space: normal;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.inventory-ui .inventory-ui__row-main:hover,
+.inventory-ui .inventory-ui__row-main:active {
+  background: none;
+  box-shadow: none;
+}
+
+.inventory-ui .inventory-ui__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inventory-ui .inventory-ui__name {
+  font-weight: var(--font-semibold);
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui .inventory-ui__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui .inventory-ui__id {
+  font-family: var(--font-monospace);
+}
+
+.inventory-ui .inventory-ui__places {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui .inventory-ui__qty {
+  flex: 0 0 auto;
+  min-width: 2ch;
+  padding-left: var(--size-4-1);
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
+  text-align: right;
+}
+
+.inventory-ui .inventory-ui__qty--zero {
+  color: var(--text-faint);
+}
+
+/* Photo, or a tap target that adds one */
+
+.inventory-ui .inventory-ui__cover {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--background-modifier-border);
+  box-shadow: none;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.inventory-ui .inventory-ui__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inventory-ui .inventory-ui__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--background-modifier-border-hover);
+  background: none;
+  color: var(--text-faint);
+}
+
+.inventory-ui .inventory-ui__cover--empty .svg-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.inventory-ui .inventory-ui__cover--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Row actions */
+
+.inventory-ui .inventory-ui__actions {
+  display: flex;
+  gap: var(--size-4-2);
+  padding: 0 var(--size-4-3) var(--size-4-3);
+}
+
+.inventory-ui .inventory-ui__action {
+  flex: 1 1 0;
+  min-height: 44px;
+  height: auto;
+  border-radius: var(--radius-m);
+}
+
+/* Modals */
+
+.inventory-ui__error {
+  min-height: 1.5em;
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}
+
+/* Under the wrong field itself, like in a web form. */
+.inventory-ui__modal .inventory-ui__field-error {
+  margin: calc(var(--size-4-1) * -1) 0 var(--size-4-3);
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}
+
+/* Anything unexpected still shows above "Add". */
+.inventory-ui__modal-actions {
+  flex-wrap: wrap;
+}
+
+.inventory-ui__modal-actions .inventory-ui__error {
+  flex: 1 0 100%;
+  order: -1;
+  min-height: 0;
+  margin-bottom: var(--size-4-2);
+}
+
+.inventory-ui__modal-actions .inventory-ui__error:empty {
+  display: none;
+}
+
+/* The field an error is about: red outlines on its controls and a red label. */
+
+.inventory-ui__modal .is-invalid input,
+.inventory-ui__modal .is-invalid button:not(.inventory-ui__chip),
+.inventory-ui__modal .is-invalid .setting-item-name {
+  border-color: var(--text-error);
+  outline: 1px solid var(--text-error);
+}
+
+.inventory-ui__modal .is-invalid .setting-item-name {
+  outline: none;
+  color: var(--text-error);
+}
+
+.inventory-ui__hidden {
+  display: none;
+}
+
+.inventory-ui__similar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  margin-bottom: var(--size-4-2);
+}
+
+.inventory-ui__similar-title {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui__similar-title--exists {
+  color: var(--text-error);
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui__similar .inventory-ui__similar-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: var(--size-4-2);
+  width: 100%;
+  min-height: 40px;
+  height: auto;
+  border-radius: var(--radius-m);
+  text-align: left;
+  white-space: normal;
+}
+
+.inventory-ui__similar-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui__similar-qty {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.inventory-ui__id {
+  font-family: var(--font-monospace);
+}
+
+.inventory-ui__no-similar {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+/* Quantity with - and + buttons */
+
+.inventory-ui__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui__stepper .inventory-ui__step {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-large);
+}
+
+.inventory-ui__stepper .inventory-ui__quantity-input {
+  width: 80px;
+  min-height: 44px;
+  border-radius: var(--radius-m);
+  text-align: center;
+}
+
+/* Button bar inside an item card, above the stock table */
+
+.inventory-ui__card-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  margin: var(--size-4-3) 0;
+}
+
+.inventory-ui__card-bar .inventory-ui__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  min-height: 44px;
+  height: auto;
+  border-radius: var(--radius-m);
+  white-space: normal;
+}
+
+/* Windows with text fields (see KeyboardGuard.ts) */
+
+/*
+ * On a phone the window sticks to the top of the screen (Obsidian centres
+ * modals). Without a focused field it is as tall as its content (at most the
+ * screen); with one (`is-typing`) it is only as tall as the space above the
+ * keyboard, and what does not fit scrolls inside. The keyboard height is set
+ * from the app's keyboard events, or guessed (a phone keyboard is about 40% of
+ * the screen). Obsidian sets both height and max-height on modals; overriding
+ * one loses. The buttons row stays at the bottom edge of the visible window.
+ */
+.is-mobile .modal-container.inventory-ui__kb-container {
+  align-items: flex-start;
+  padding-top: calc(var(--safe-area-inset-top, 0px) + 12px);
+}
+
+.is-mobile .modal.inventory-ui__kb-modal {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  max-height: calc(100dvh - var(--safe-area-inset-top, 0px) - 24px);
+  transition: max-height 160ms ease;
+}
+
+.is-mobile .modal.inventory-ui__kb-modal.is-typing {
+  max-height: calc(
+    100dvh - var(--safe-area-inset-top, 0px) - 12px - var(--inventory-ui-keyboard-height, 46dvh) - 8px
+  );
+}
+
+.is-mobile .inventory-ui__kb-modal .modal-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0;
+}
+
+/*
+ * The buttons row sticks a little above the bottom edge of the visible window (the
+ * gap under it is filled with the window's own colour, so rows scrolling past do not
+ * show through). In a short window nothing scrolls and it simply sits at the end.
+ */
+.is-mobile .inventory-ui__kb-modal .inventory-ui__modal-actions {
+  position: sticky;
+  bottom: var(--size-4-3);
+  z-index: 1;
+  margin-top: var(--size-4-2);
+  background: var(--modal-background, var(--background-primary));
+  box-shadow: 0 var(--size-4-3) 0 0 var(--modal-background, var(--background-primary));
+}
+
+/* The row has no name of its own: its empty label would only push the button down. */
+.inventory-ui__modal-actions .setting-item-info {
+  display: none;
+}
+
+/* Phones zoom the page on a field smaller than 16px. */
+.is-mobile .inventory-ui__kb-modal input[type="text"],
+.is-mobile .inventory-ui__kb-modal input[type="number"],
+.is-mobile .inventory-ui__kb-modal input[type="search"],
+.is-mobile .inventory-ui__kb-modal textarea {
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-mobile .modal.inventory-ui__kb-modal {
+    transition: none;
+  }
+}
+
+/* QR label window */
+
+.inventory-ui__qr-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--size-4-3);
+}
+
+.inventory-ui__qr-preview canvas {
+  max-width: 100%;
+  height: auto;
+  max-height: 26vh;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+/* Locations board on the dashboard */
+
+.inventory-ui .inventory-ui__board {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui .inventory-ui__board-head {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--size-4-2);
+}
+
+/* The round accent "+" next to the title: the same bubble as the tag "+". */
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: hsla(var(--interactive-accent-hsl), 0.15);
+  color: var(--text-accent);
+  box-shadow: none;
+}
+
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.inventory-ui .inventory-ui__board-toggle {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--size-4-2);
+  min-height: 36px;
+  height: auto;
+  padding: 0 var(--size-4-2);
+  border: 0;
+  border-radius: var(--radius-m);
+  background: none;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+}
+
+.inventory-ui .inventory-ui__board-count {
+  color: var(--text-faint);
+}
+
+.inventory-ui .inventory-ui__board .inventory-ui__sort {
+  justify-content: flex-start;
+}
+
+.inventory-ui .inventory-ui__board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: var(--size-4-2);
+}
+
+.inventory-ui .inventory-ui__board-tile {
+  container: inventory-tile / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  padding: var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+}
+
+/* A tile with a photo: the photo fills it, a dark wash keeps the text and buttons readable. */
+.inventory-ui .inventory-ui__board-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.inventory-ui .inventory-ui__board-tile > * {
+  position: relative;
+}
+
+.inventory-ui .inventory-ui__board-tile > img.inventory-ui__board-tile-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0.75));
+  pointer-events: none;
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover > .inventory-ui__board-tile-body,
+.inventory-ui .inventory-ui__board-tile.has-cover > .inventory-ui__board-tile-actions {
+  z-index: 2;
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-tile-top,
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-tile-qty {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-tile-qty--zero {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-action {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-action.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.inventory-ui .inventory-ui__board-tile {
+  cursor: default;
+}
+
+.inventory-ui .inventory-ui__board-tile-body {
+  cursor: pointer;
+}
+
+.inventory-ui .inventory-ui__board-tile.is-selected {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.inventory-ui .inventory-ui__board-tile-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--size-4-1);
+  min-height: 52px;
+  /* No text selection or iOS callout on a long press: it pins the location. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.inventory-ui .inventory-ui__board-tile-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--size-4-1);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui .inventory-ui__board-tile-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui .inventory-ui__board-tile-top .svg-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--interactive-accent);
+}
+
+.inventory-ui .inventory-ui__board-tile-qty {
+  align-self: flex-end;
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+}
+
+.inventory-ui .inventory-ui__board-tile-qty--zero {
+  color: var(--text-faint);
+}
+
+/* The tile's buttons: icons only on a phone, icons with words on a computer. */
+.inventory-ui .inventory-ui__board-tile-actions {
+  display: flex;
+  gap: var(--size-4-1);
+}
+
+/* On a computer the tiles are wide enough for the words too. */
+body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.inventory-ui .inventory-ui__board-action {
+  overflow: hidden;
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-1);
+  min-width: 0;
+  min-height: 40px;
+  height: auto;
+  padding: 0 var(--size-4-1);
+  border-radius: var(--radius-m);
+  box-shadow: none;
+}
+
+.inventory-ui .inventory-ui__board-action .svg-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.inventory-ui .inventory-ui__board-action.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* A word next to an icon only when the tile is wide enough for all three. */
+.inventory-ui .inventory-ui__board-action-label {
+  display: none;
+}
+
+@container inventory-tile (min-width: 190px) {
+  .inventory-ui .inventory-ui__board-action-label {
+    display: inline;
+  }
+}
+
+/* Select field (button that opens a searchable list) */
+
+.inventory-ui__select-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  border-radius: var(--radius-m);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* A long name is cut with an ellipsis; the list that opens has room for all of it. */
+.inventory-ui__select-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The label of the row keeps its room; the button takes what is left and no more than 70%. */
+.inventory-ui__select-row .setting-item-info {
+  flex: 0 0 auto;
+}
+
+.inventory-ui__select-row .setting-item-control {
+  flex: 0 1 auto;
+  margin-left: auto;
+  min-width: 0;
+  max-width: 70%;
+}
+
+.is-mobile .inventory-ui__select-row .setting-item-control {
+  max-width: 100%;
+}
+
+/* In a settings row the description wraps instead of running under the button. */
+.inventory-ui__select-inline.inventory-ui__select-row .setting-item-info {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.inventory-ui__select-inline.inventory-ui__select-row .setting-item-control {
+  flex: 0 0 auto;
+  max-width: 300px;
+}
+
+/* In a settings row the select is a compact button; a long name is cut with an ellipsis. */
+.inventory-ui__select-inline .inventory-ui__select-button {
+  width: auto;
+  min-width: 180px;
+  max-width: 300px;
+  white-space: nowrap;
+}
+
+/* The picked row in a pick list. */
+.inventory-ui__select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui__select-check {
+  display: inline-flex;
+  color: var(--text-accent);
+}
+
+.inventory-ui__select-icon {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+/* Short lists need no search field. */
+.inventory-ui__select--no-search .prompt-input-container {
+  display: none;
+}
+
+.inventory-ui__select-add {
+  color: var(--text-accent);
+}
+
+/* Folded away. Declared last and with the container prefix so it also beats
+   the display rules of the dashboard's own blocks. */
+.inventory-ui .inventory-ui__hidden {
+  display: none;
+}
+
+.inventory-ui__confirm-items {
+  max-height: 40vh;
+  overflow-y: auto;
+  margin: 0 0 var(--size-4-3);
+  padding-left: var(--size-4-5);
+}
+
+/* Setup panel and structure tree */
+.inventory-ui .inventory-ui__setup {
+  padding: var(--size-4-4);
+  overflow-y: auto;
+}
+
+.inventory-ui.is-setup > .inventory-ui__toolbar,
+.inventory-ui.is-setup > .inventory-ui__scroll {
+  display: none;
+}
+
+.inventory-ui .inventory-ui__step {
+  margin-bottom: var(--size-4-4);
+}
+
+.inventory-ui .inventory-ui__step.is-muted {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.inventory-ui .inventory-ui__step-line {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  margin-bottom: var(--size-4-1);
+}
+
+.inventory-ui .inventory-ui__step-line.is-ok {
+  color: var(--color-green);
+}
+
+.inventory-ui .inventory-ui__step-line.is-bad {
+  color: var(--color-red);
+}
+
+.inventory-ui .inventory-ui__step-actions {
+  display: flex;
+  gap: var(--size-4-2);
+  padding-bottom: 96px;
+}
+
+.inventory-ui .inventory-ui__step-actions button {
+  min-height: 44px;
+  border-radius: var(--radius-m);
+}
+
+/* The tree: connector lines drawn like `tree` in a terminal. ROW is the row height. */
+.inventory-ui__tree {
+  --inventory-tree-row: 28px;
+  --inventory-tree-line: var(--background-modifier-border-hover);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui__tree .inventory-ui__tree {
+  margin-left: 9px;
+  padding-left: 18px;
+}
+
+.inventory-ui__tree-item {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Vertical line, running through the entry and its children. */
+.inventory-ui__tree .inventory-ui__tree > .inventory-ui__tree-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -18px;
+  border-left: 1px solid var(--inventory-tree-line);
+}
+
+/* Short horizontal branch to the entry. */
+.inventory-ui__tree .inventory-ui__tree > .inventory-ui__tree-item::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--inventory-tree-row) / 2);
+  left: -18px;
+  width: 14px;
+  border-top: 1px solid var(--inventory-tree-line);
+}
+
+/* The last entry's vertical line stops at its branch. */
+.inventory-ui__tree .inventory-ui__tree > .inventory-ui__tree-item:last-child::before {
+  bottom: auto;
+  height: calc(var(--inventory-tree-row) / 2);
+}
+
+.inventory-ui__tree-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  min-height: var(--inventory-tree-row);
+}
+
+.inventory-ui__tree-row .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.inventory-ui__tree-kind {
+  display: inline-flex;
+  color: var(--text-faint);
+}
+
+.inventory-ui__tree-row.is-folder .inventory-ui__tree-kind {
+  color: var(--interactive-accent);
+}
+
+.inventory-ui__tree-row.is-folder .inventory-ui__tree-name {
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui__tree-row.is-missing .inventory-ui__tree-name {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.inventory-ui__tree-status {
+  display: inline-flex;
+}
+
+.inventory-ui__tree-row.is-missing .inventory-ui__tree-status {
+  color: var(--color-green);
+}
+
+.inventory-ui__tree-row.is-warning .inventory-ui__tree-status {
+  color: var(--color-orange);
+}
+
+.inventory-ui__tree-row input[type="checkbox"],
+.inventory-ui__tree-issue input[type="checkbox"] {
+  flex: none;
+  margin: 0;
+}
+
+.inventory-ui__tree-issue {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  margin: 0 0 var(--size-4-1) 22px;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.inventory-ui__tree-issue.is-warning {
+  color: var(--color-orange);
+}
+
+.inventory-ui__tree-issue.is-error {
+  color: var(--color-red);
+}
+
+.modal.inventory-ui__structure-modal {
+  width: min(640px, 92vw);
+}
+
+.inventory-ui__structure-modal .inventory-ui__structure-tree {
+  max-height: 55vh;
+  overflow-y: auto;
+  margin-bottom: var(--size-4-3);
+}
+
+.inventory-ui .inventory-ui__step-recheck {
+  min-height: 44px;
+  margin-top: var(--size-4-2);
+  border-radius: var(--radius-m);
+}
+
+.inventory-ui .inventory-ui__step-recheck,
+.inventory-ui .inventory-ui__step-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  transition: transform 80ms ease, filter 80ms ease;
+}
+
+.inventory-ui .inventory-ui__step-recheck:active:not(:disabled),
+.inventory-ui .inventory-ui__step-actions button:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: brightness(0.85);
+}
+
+.inventory-ui .inventory-ui__step-recheck:disabled,
+.inventory-ui .inventory-ui__step-actions button:disabled {
+  opacity: 0.6;
+}
+
+.inventory-ui .inventory-ui__spinner {
+  display: inline-flex;
+}
+
+.inventory-ui .inventory-ui__spinner .svg-icon {
+  animation: inventory-ui-spin 0.9s linear infinite;
+}
+
+@keyframes inventory-ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.inventory-ui .inventory-ui__step-line span:last-child,
+.inventory-ui__tree-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui .inventory-ui__setup {
+  overflow-x: hidden;
+}
+
+/* Empty states: locations block and the whole inventory */
+.inventory-ui .inventory-ui__board-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--size-4-2);
+  padding: var(--size-4-3) var(--size-4-4);
+  border: 1px dashed var(--background-modifier-border-hover);
+  border-radius: var(--radius-m);
+}
+
+.inventory-ui .inventory-ui__board-empty-title {
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui .inventory-ui__board-empty-hint {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui .inventory-ui__board-empty-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  min-height: 44px;
+  border-radius: var(--radius-m);
+}
+
+.inventory-ui .inventory-ui__empty-inventory {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4-3);
+}
+
+/* Dashboard shortcut at the top of the file explorer */
+.workspace-leaf-content button.inventory-ui__explorer-link {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  width: calc(100% - var(--size-4-4));
+  min-height: 44px;
+  margin: var(--size-4-1) var(--size-4-2) var(--size-4-2);
+  padding: 0 var(--size-4-3);
+  border-radius: var(--radius-m);
+  box-shadow: none;
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  justify-content: flex-start;
+}
+
+.workspace-leaf-content button.inventory-ui__explorer-link:active {
+  filter: brightness(0.85);
+}
+
+.workspace-leaf-content button.inventory-ui__explorer-link .svg-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Bottom bar of a long item list: stays at the lower edge of the screen */
+.inventory-ui .inventory-ui__list-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--size-4-2);
+}
+
+/* The rows after the first screen and the bar share one block (see renderList). */
+.inventory-ui .inventory-ui__list-rest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+/* Open list: the bar sticks to the bottom edge, but only inside that block. */
+.inventory-ui .inventory-ui__list-footer.is-sticky {
+  position: sticky;
+  bottom: var(--size-4-3);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* A phone has a floating navigation bar at the bottom: sit above it. */
+.is-mobile .inventory-ui .inventory-ui__list-footer.is-sticky {
+  bottom: calc(var(--safe-area-inset-bottom, 34px) + 68px);
+}
+
+.inventory-ui .inventory-ui__list-footer-group {
+  display: flex;
+  gap: var(--size-4-1);
+  max-width: 100%;
+  padding: var(--size-4-1);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  box-shadow: var(--shadow-s);
+  pointer-events: auto;
+}
+
+.inventory-ui .inventory-ui__footer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-2);
+  min-height: 44px;
+  padding: 0 var(--size-4-4);
+  border-radius: var(--radius-s);
+  box-shadow: none;
+  white-space: nowrap;
+  transition: transform 80ms ease, filter 80ms ease;
+}
+
+.inventory-ui .inventory-ui__footer-button:not(.mod-cta) {
+  background: transparent;
+}
+
+.inventory-ui .inventory-ui__footer-button:active {
+  transform: scale(0.97);
+  filter: brightness(0.85);
+}
+
+.inventory-ui .inventory-ui__footer-button .svg-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Open list: only the thin outline of the bar is in the accent colour, the fill stays as it was */
+.inventory-ui .inventory-ui__list-footer.is-sticky .inventory-ui__list-footer-group {
+  border-color: var(--interactive-accent);
+}
+
+.inventory-ui .inventory-ui__list-footer.is-sticky .inventory-ui__footer-button + .inventory-ui__footer-button {
+  border-left: 1px solid var(--background-modifier-border);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+}
+
+.inventory-ui .inventory-ui__list-footer.is-sticky .inventory-ui__footer-button:has(+ .inventory-ui__footer-button) {
+  border-radius: var(--radius-s) 0 0 var(--radius-s);
+}
+
+/* One look for every window of the plugin: a thin frame, accented on the one in front (ModalFrame.ts) */
+.modal.inventory-ui__framed {
+  border: 1px solid var(--background-modifier-border);
+}
+
+.modal.inventory-ui__framed.is-front {
+  border-color: var(--interactive-accent);
+}
+
+.inventory-ui .inventory-ui__uncounted {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+/* Tags in the add form: label, "+" and a light cloud of tags in one wrapping row */
+.modal .inventory-ui__tags-row {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-3) 0;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.modal .inventory-ui__tags-label {
+  flex: 0 0 auto;
+  margin-right: var(--size-4-1);
+}
+
+.modal .inventory-ui__chips {
+  display: contents;
+}
+
+/* Prefixed with .modal and !important on size: Obsidian's mobile buttons are big and wide.
+   The look is Obsidian's own tag bubble: accent text on a faint accent wash. */
+.modal .inventory-ui__tags-row button.inventory-ui__chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-2-2);
+  width: auto !important;
+  height: 28px !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 0 var(--size-4-2);
+  border: none;
+  border-radius: 14px;
+  background: hsla(var(--interactive-accent-hsl), 0.15);
+  color: var(--text-accent);
+  box-shadow: none;
+  font-size: var(--font-ui-small);
+  line-height: 1;
+}
+
+.modal .inventory-ui__tags-row button.inventory-ui__chip--add {
+  width: 28px !important;
+  padding: 0;
+  color: var(--text-accent);
+}
+
+.inventory-ui__chip .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.inventory-ui__chip .inventory-ui__chip-x {
+  display: inline-flex;
+  color: var(--text-accent);
+  opacity: 0.7;
+}
+
+.inventory-ui .inventory-ui__tags {
+  color: var(--text-accent);
+  font-size: var(--font-ui-smaller);
+}
+
+/* Tag suggestions under the search field: shown while a word starts with # */
+.inventory-ui .inventory-ui__tag-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) 0;
+}
+
+.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 14px;
+  background: var(--background-modifier-hover);
+  color: var(--text-accent);
+  box-shadow: none;
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip:active {
+  filter: brightness(0.85);
+}
+
+/* Optional module marks in the structure tree, and the note about a replace. */
+.inventory-ui__tree-module {
+  margin-left: var(--size-4-2);
+  padding: 0 var(--size-4-1);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui__tree-replace {
+  margin-left: var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+/* The round "?" that opens a hint, and the hint itself. */
+.modal .inventory-ui__help {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 22px !important;
+  height: 22px !important;
+  min-height: 0 !important;
+  margin: 0 0 0 var(--size-4-2);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: hsla(var(--interactive-accent-hsl), 0.15);
+  color: var(--text-accent);
+  box-shadow: none;
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  vertical-align: middle;
+}
+
+.inventory-ui__modal .inventory-ui__hint {
+  display: none;
+  margin: calc(var(--size-4-1) * -1) 0 var(--size-4-3);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui__modal .inventory-ui__hint.is-open {
+  display: block;
+}
+
+/* A stepper button that cannot go further: a short shake and a red flash. */
+.inventory-ui__step.is-refused {
+  animation: inventory-ui-refused 280ms ease-in-out;
+}
+
+@keyframes inventory-ui-refused {
+  0%, 100% { transform: translateX(0); background-color: var(--background-modifier-hover); }
+  20% { transform: translateX(-5px); background-color: rgba(var(--color-red-rgb, 220, 60, 60), 0.35); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-ui__step.is-refused {
+    animation: none;
+    background-color: var(--background-modifier-error);
+  }
+}
+
+/* A setting that does not apply on this device: dimmed. */
+.inventory-ui__setting-muted {
+  opacity: 0.5;
+}
+
+/* Dev only: the pad of the long press lab. */
+.inventory-ui__lab-pad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  margin-top: var(--size-4-3);
+  border: 2px dashed var(--interactive-accent);
+  border-radius: var(--radius-m);
+  color: var(--text-accent);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.inventory-ui__lab-pad {
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui__lab-clock {
+  font-size: var(--font-ui-large);
+  font-variant-numeric: tabular-nums;
+}
+
+.inventory-ui__lab-log {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  text-align: center;
+}
+
+/* Dev only: the lab keeps its buttons and pad still while the list above scrolls. */
+.inventory-ui__lab {
+  display: flex;
+  flex-direction: column;
+  height: min(82dvh, 760px);
+}
+
+.inventory-ui__lab-top {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.inventory-ui__lab-bottom {
+  flex: 0 0 auto;
+}
+
+.inventory-ui__lab-timings {
+  max-height: 130px;
+  overflow-y: auto;
+  margin-top: var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The two sample QR codes in the settings: tap one to choose the default look. */
+.inventory-ui__qr-choices {
+  display: flex;
+  gap: var(--size-4-3);
+  margin: 0 0 var(--size-4-4);
+}
+
+.inventory-ui__qr-choices button.inventory-ui__qr-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4-2);
+  height: auto;
+  padding: var(--size-4-2);
+  border: 2px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: none;
+}
+
+.inventory-ui__qr-choices button.inventory-ui__qr-choice.is-selected {
+  border-color: var(--interactive-accent);
+}
+
+.inventory-ui__qr-choice canvas {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-s);
+}
+
+/* Danger zone of the settings: set apart, in the error colour. */
+.inventory-ui__settings .inventory-ui__danger-zone {
+  margin-top: var(--size-4-8);
+  padding: var(--size-4-2) var(--size-4-4);
+  border: 1px solid var(--background-modifier-error);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--background-modifier-error) 8%, transparent);
+}
+
+.inventory-ui__settings .inventory-ui__danger-zone .setting-item-heading {
+  border-top: none;
+}
+
+.inventory-ui__settings .inventory-ui__danger-zone .setting-item-heading .setting-item-name {
+  color: var(--text-error);
+}
+
+/* Tabs of the settings: one page at a time. */
+.inventory-ui__settings .inventory-ui__settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1);
+  margin-bottom: var(--size-4-4);
+  padding-bottom: var(--size-4-2);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.inventory-ui__settings .inventory-ui__settings-tab {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: var(--radius-m);
+  padding: var(--size-4-2) var(--size-4-3);
+  color: var(--text-muted);
+  min-height: 36px;
+}
+
+.inventory-ui__settings .inventory-ui__settings-tab.is-active {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui__settings .inventory-ui__settings-tab.is-danger {
+  color: var(--text-error);
+}

@@ -1,0 +1,10 @@
+{
+  "id": "inventory-ui",
+  "name": "Inventory",
+  "version": "0.1.0",
+  "minAppVersion": "1.7.2",
+  "description": "Fast inventory screen for items and stock positions: search, add, move, use up.",
+  "author": "miroff",
+  "fundingUrl": "https://buymeacoffee.com/miroff",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" role="img" aria-label="Open silver box with a faceted purple Obsidian crystal">
+  <g fill="none" stroke="#1D232B" stroke-width="31" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Rear flaps -->
+    <path d="M435 353 207 453 310 554 450 493"/>
+    <path d="M811 353 1043 453 941 554 802 493"/>
+  </g>
+
+  <!-- Each crystal facet is a separate flat-color polygon. -->
+  <g>
+    <polygon fill="#E4E4E4" points="625,274 486,423 565,487"/>
+    <polygon fill="#B8B8B8" points="625,274 565,487 622,509"/>
+    <polygon fill="#929292" points="625,274 622,509 688,482"/>
+    <polygon fill="#666666" points="625,274 688,482 760,422"/>
+    <polygon fill="#C5C5C5" points="486,423 565,487 550,591 543,657 486,622"/>
+    <polygon fill="#898989" points="565,487 622,509 550,591"/>
+    <polygon fill="#525252" points="622,509 688,482 622,697 543,657 550,591"/>
+    <polygon fill="#A5A5A5" points="688,482 760,422 760,622 622,697"/>
+  </g>
+
+  <g fill="none" stroke="#1D232B" stroke-width="31" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Upright outline behind the crystal -->
+    <path d="M451 620V410L625 225 797 410V620"/>
+    <!-- Inner folds and open front flaps -->
+    <path d="M450 493 309 552 625 710 500 811 195 659 309 552"/>
+    <path d="M803 493 942 552 625 710 746 811 1045 659 942 552"/>
+    <!-- Box walls, with transparent interiors -->
+    <path d="M290 713V873L625 1038 955 873V713"/>
+    <path d="M625 710V1038"/>
+  </g>
+</svg>

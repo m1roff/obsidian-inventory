@@ -1,0 +1,29 @@
+import { describe, expect, it } from "vitest";
+import { AttachCoverService } from "../../src/domain/AttachCoverService";
+import { CoverWriter } from "../../src/domain/CoverWriter";
+
+class FakeWriter implements CoverWriter {
+  calls: { itemPath: string; fileName: string; bytes: ArrayBuffer }[] = [];
+  async attach(itemPath: string, fileName: string, bytes: ArrayBuffer): Promise<void> {
+    this.calls.push({ itemPath, fileName, bytes });
+  }
+}
+
+const clock = { now: () => new Date(2026, 7, 23, 23, 26, 35, 540) };
+
+describe("AttachCoverService", () => {
+  it("names the file like the existing photos in the vault", async () => {
+    const writer = new FakeWriter();
+    const bytes = new ArrayBuffer(4);
+    await new AttachCoverService(writer, clock).attach("Inventory_Items/X.md", { bytes, extension: "JPG" });
+    expect(writer.calls).toEqual([
+      { itemPath: "Inventory_Items/X.md", fileName: "2026-08-23-23_26_35_540-image.jpg", bytes },
+    ]);
+  });
+
+  it("falls back to jpg for an unusable extension", async () => {
+    const writer = new FakeWriter();
+    await new AttachCoverService(writer, clock).attach("a.md", { bytes: new ArrayBuffer(0), extension: "../" });
+    expect(writer.calls[0].fileName.endsWith("-image.jpg")).toBe(true);
+  });
+});
