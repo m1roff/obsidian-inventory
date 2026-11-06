@@ -1,6 +1,6 @@
 import { InventoryEntry } from "./InventoryEntry";
 import { Place } from "./Place";
-import { queryTags, tagsMatch } from "./TagQuery";
+import { SearchQuery, searchablePlace } from "./SearchQuery";
 
 export const LOCATION_SORT_MODES = ["alpha", "added", "updated"] as const;
 
@@ -140,18 +140,14 @@ export function withSelectedFirst(tiles: readonly LocationTile[], selected: stri
 }
 
 /**
- * The tiles a search query leaves: with `#tag` words in it, only the places that have those tags
- * themselves (what is stored in them is not looked at: tags belong to the thing they are on).
- * The place that is doing the filtering stays, so it can still be switched off.
+ * The tiles a search query leaves: by name, id and the tags the place has itself (what is stored
+ * in it is not looked at: tags belong to the thing they are on). The place that is doing the
+ * filtering stays, so it can still be switched off.
  */
-export function tilesMatchingTags(
-  tiles: readonly LocationTile[],
-  query: string,
-  keep: string | null,
-): LocationTile[] {
-  const wanted = queryTags(query);
-  if (wanted.length === 0) return [...tiles];
-  return tiles.filter((tile) => tile.name === keep || tagsMatch(tile.tags, wanted));
+export function tilesMatching(tiles: readonly LocationTile[], query: string, keep: string | null): LocationTile[] {
+  const parsed = SearchQuery.parse(query);
+  if (parsed.isEmpty) return [...tiles];
+  return tiles.filter((tile) => tile.name === keep || parsed.matches(searchablePlace(tile)));
 }
 
 /** Pins an unpinned location (at the end), or unpins a pinned one. */

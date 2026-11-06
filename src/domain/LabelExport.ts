@@ -49,8 +49,10 @@ export class LabelSelection {
     else this.excluded.add(place.path);
   }
 
-  selectAll(): void {
-    this.excluded.clear();
+  /** Ticks everything, or only the given things (what a search left in the list). */
+  selectAll(places?: readonly Keyed[]): void {
+    if (places === undefined) this.excluded.clear();
+    else for (const place of places) this.excluded.delete(place.path);
   }
 
   deselectAll(places: readonly Keyed[]): void {

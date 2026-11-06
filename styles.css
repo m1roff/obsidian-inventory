@@ -46,25 +46,29 @@
   height: calc(var(--safe-area-inset-bottom, 34px) + 96px);
 }
 
-.inventory-ui .inventory-ui__search-wrap {
+.inventory-ui .inventory-ui__search-wrap,
+.inventory-ui__settings .inventory-ui__search-wrap {
   position: relative;
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.inventory-ui .inventory-ui__search-wrap .inventory-ui__search {
+.inventory-ui .inventory-ui__search-wrap .inventory-ui__search,
+.inventory-ui__settings .inventory-ui__search-wrap .inventory-ui__search {
   width: 100%;
   padding-right: 44px;
 }
 
-.inventory-ui .inventory-ui__search::-webkit-search-cancel-button {
+.inventory-ui .inventory-ui__search::-webkit-search-cancel-button,
+.inventory-ui__settings .inventory-ui__search::-webkit-search-cancel-button {
   display: none;
   -webkit-appearance: none;
 }
 
 /* The round accent "x" at the end of the search field: clears it in one tap. */
-.inventory-ui .inventory-ui__search-clear {
+.inventory-ui .inventory-ui__search-clear,
+.inventory-ui__settings .inventory-ui__search-clear {
   position: absolute;
   top: 50%;
   right: var(--size-4-2);
@@ -82,16 +86,19 @@
   box-shadow: none;
 }
 
-.inventory-ui .inventory-ui__search-clear.is-visible {
+.inventory-ui .inventory-ui__search-clear.is-visible,
+.inventory-ui__settings .inventory-ui__search-clear.is-visible {
   display: flex;
 }
 
-.inventory-ui .inventory-ui__search-clear .svg-icon {
+.inventory-ui .inventory-ui__search-clear .svg-icon,
+.inventory-ui__settings .inventory-ui__search-clear .svg-icon {
   width: 16px;
   height: 16px;
 }
 
-.inventory-ui .inventory-ui__search {
+.inventory-ui .inventory-ui__search,
+.inventory-ui__settings .inventory-ui__search {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 44px;
@@ -1410,14 +1417,16 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 }
 
 /* Tag suggestions under the search field: shown while a word starts with # */
-.inventory-ui .inventory-ui__tag-suggest {
+.inventory-ui .inventory-ui__tag-suggest,
+.inventory-ui__settings .inventory-ui__tag-suggest {
   display: flex;
   flex-wrap: wrap;
   gap: var(--size-4-2);
   padding: var(--size-4-1) 0;
 }
 
-.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip {
+.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip,
+.inventory-ui__settings .inventory-ui__tag-suggest .inventory-ui__chip {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -1430,7 +1439,8 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
   font-size: var(--font-ui-small);
 }
 
-.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip:active {
+.inventory-ui .inventory-ui__tag-suggest .inventory-ui__chip:active,
+.inventory-ui__settings .inventory-ui__tag-suggest .inventory-ui__chip:active {
   filter: brightness(0.85);
 }
 
@@ -1697,4 +1707,9 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 .inventory-ui__section-modal .inventory-ui__section-name {
   flex: 1 1 100%;
   font-size: 16px;
+}
+
+/* The search field above an export list inside the settings */
+.inventory-ui__export .inventory-ui__export-search {
+  margin-bottom: var(--size-4-2);
 }

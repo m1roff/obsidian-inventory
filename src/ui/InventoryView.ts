@@ -15,7 +15,7 @@ import {
   entriesInLocation,
   LocationBoard,
   LocationPreferencesStore,
-  tilesMatchingTags,
+  tilesMatching,
   withSelectedFirst,
 } from "../domain/LocationBoard";
 import {
@@ -44,7 +44,7 @@ import { scanQrFromPhoto } from "./QrScanner";
 import { INVENTORY_ICON_ID } from "./InventoryIcon";
 import { Haptics } from "./Haptics";
 import { PhotoAttacher } from "./PhotoAttacher";
-import { addSearchClear, SearchClear } from "./SearchClear";
+import { SearchField } from "./SearchField";
 import { SetupPanel } from "./SetupPanel";
 import { StockStatePolicy } from "../domain/StockState";
 import { SetupService } from "../domain/structure/SetupService";
@@ -52,8 +52,6 @@ import { STRINGS } from "./strings";
 
 export const INVENTORY_VIEW_TYPE = "inventory-ui-view";
 
-/** The "#" list under the search field shows at most this many tags. */
-const MAX_TAG_SUGGESTIONS = 8;
 const REFRESH_DELAY_MS = 300;
 
 export interface InventoryViewDeps {
@@ -97,11 +95,9 @@ export class InventoryView extends ItemView {
   /** What the last read of the vault found; sort and fold changes redraw from it. */
   private entries: InventoryEntry[] = [];
   private readonly rows: ItemRow;
-  private searchEl: HTMLInputElement | null = null;
+  private search: SearchField | null = null;
   private listEl: HTMLElement | null = null;
   private scrollEl: HTMLElement | null = null;
-  private tagSuggestEl: HTMLElement | null = null;
-  private searchClear: SearchClear | null = null;
   /** Tags seen on the items at the last redraw: what "#" offers while typing. */
   private knownTags: string[] = [];
   private refreshTimer: number | null = null;
@@ -161,7 +157,7 @@ export class InventoryView extends ItemView {
     if (draft) {
       window.setTimeout(() => this.openAddModal(draft), 0);
     }
-    if (this.searchEl) this.searchEl.value = this.query;
+    this.search?.setValue(this.query);
     this.renderList();
     await super.setState(state, result);
   }
@@ -172,26 +168,16 @@ export class InventoryView extends ItemView {
     root.addClass("inventory-ui");
 
     const toolbar = root.createDiv({ cls: "inventory-ui__toolbar" });
-    const searchWrap = toolbar.createDiv({ cls: "inventory-ui__search-wrap" });
-    this.searchEl = searchWrap.createEl("input", {
-      cls: "inventory-ui__search",
-      type: "search",
+    // The same search field as everywhere; its tag chips go under the toolbar, in the root.
+    this.search = new SearchField(toolbar, {
       placeholder: STRINGS.searchPlaceholder,
-    });
-    this.searchEl.value = this.query;
-    this.searchClear = addSearchClear(searchWrap, this.searchEl, () => {
-      this.query = "";
-      this.renderList();
-      this.updateTagSuggestions();
-    });
-    this.searchEl.addEventListener("input", () => {
-      this.query = this.searchEl?.value ?? "";
-      this.renderList();
-      this.updateTagSuggestions();
-    });
-    this.searchEl.addEventListener("blur", () => {
-      // A little later, so a tap on a suggestion still lands.
-      window.setTimeout(() => this.tagSuggestEl?.hide(), 150);
+      initial: this.query,
+      tags: () => [...this.knownTags, ...this.deps.references.tags()],
+      onChange: (query) => {
+        this.query = query;
+        this.renderList();
+      },
+      suggestIn: root,
     });
 
     const scanButton = toolbar.createEl("button", {
@@ -209,9 +195,6 @@ export class InventoryView extends ItemView {
     });
     setIcon(addButton, "plus");
     addButton.addEventListener("click", () => this.openAddModal());
-
-    this.tagSuggestEl = root.createDiv({ cls: "inventory-ui__tag-suggest" });
-    this.tagSuggestEl.hide();
 
     // Only the search row stays put; the sort switch scrolls away with the list.
     const scroll = root.createDiv({ cls: "inventory-ui__scroll" });
@@ -338,64 +321,6 @@ export class InventoryView extends ItemView {
     this.renderSortSwitch(parent);
   }
 
-  /**
-   * While the word being typed starts with "#", offers the tags that fit it. Runs on typing
-   * only, and reads the tags already known from the last redraw plus the tags list.
-   */
-  private updateTagSuggestions(): void {
-    const box = this.tagSuggestEl;
-    if (!box) return;
-    box.empty();
-
-    const typed = this.searchEl?.value ?? "";
-    const token = typed.split(/\s+/).pop() ?? "";
-    if (!token.startsWith("#")) {
-      box.hide();
-      return;
-    }
-
-    const prefix = token.slice(1).toLowerCase();
-    const used = new Set(
-      typed
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((word) => word.startsWith("#"))
-        .map((word) => word.slice(1)),
-    );
-    const all = new Map<string, string>();
-    for (const tag of [...this.knownTags, ...this.deps.references.tags()]) {
-      if (!all.has(tag.toLowerCase())) all.set(tag.toLowerCase(), tag);
-    }
-    const matches = [...all.values()]
-      .filter((tag) => tag.toLowerCase().startsWith(prefix) && !used.has(tag.toLowerCase()))
-      .sort((a, b) => a.localeCompare(b))
-      .slice(0, MAX_TAG_SUGGESTIONS);
-
-    if (matches.length === 0) {
-      box.hide();
-      return;
-    }
-    for (const tag of matches) {
-      const chip = box.createEl("button", { cls: "inventory-ui__chip", text: `#${tag}` });
-      // Keep the focus in the search field, so the keyboard stays up.
-      chip.addEventListener("pointerdown", (event) => event.preventDefault());
-      chip.addEventListener("click", () => this.pickTag(tag));
-    }
-    box.show();
-  }
-
-  private pickTag(tag: string): void {
-    const input = this.searchEl;
-    if (!input) return;
-    const words = input.value.split(/\s+/);
-    words[words.length - 1] = `#${tag}`;
-    input.value = `${words.join(" ")} `;
-    this.query = input.value;
-    this.renderList();
-    this.updateTagSuggestions();
-    input.focus();
-  }
-
   private setItemsExpanded(expanded: boolean): void {
     const current = this.deps.preferences.get();
     this.deps.preferences.set({ ...current, itemsExpanded: expanded });
@@ -512,14 +437,8 @@ export class InventoryView extends ItemView {
     }, REFRESH_DELAY_MS);
   }
 
-  /** The "x" in the search field shows only while there is something to clear. */
-  private syncSearchClear(): void {
-    this.searchClear?.sync();
-  }
-
   /** Reads the inventory and draws everything. For changes of the data (notes changed, search). */
   private renderList(): void {
-    this.syncSearchClear();
     if (!this.listEl || this.inSetup) return;
 
     this.entries = this.deps.repository.loadEntries();
@@ -553,7 +472,7 @@ export class InventoryView extends ItemView {
       this.locationFilter = null;
     }
     // Tags in the search also narrow the locations, by the tags the places have themselves.
-    const shownTiles = tilesMatchingTags(tiles, this.query, this.locationFilter);
+    const shownTiles = tilesMatching(tiles, this.query, this.locationFilter);
     if (shownTiles.length === 0 && tiles.length > 0) this.board?.hide();
     else this.board?.render(withSelectedFirst(shownTiles, this.locationFilter), this.locationFilter);
 
@@ -655,7 +574,7 @@ export class InventoryView extends ItemView {
 
   private setQuery(query: string): void {
     this.query = query;
-    if (this.searchEl) this.searchEl.value = query;
+    this.search?.setValue(query);
     this.renderList();
   }
 

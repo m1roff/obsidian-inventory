@@ -170,6 +170,8 @@ export const STRINGS = {
   exportDeselectAll: "Deselect all",
   exportSelectedCount: (selected: number, total: number): string => `Selected ${selected} of ${total}`,
   exportNoId: "no id yet",
+  exportSearch: "Search by name, id or #tag",
+  exportNoMatch: "Nothing matches the search.",
   exportNoPlaces: "There are no locations yet.",
   exportButton: "Export CSV",
   exportDone: (count: number): string => `Exported ${count} location(s)`,

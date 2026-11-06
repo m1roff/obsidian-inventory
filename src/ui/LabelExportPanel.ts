@@ -1,6 +1,8 @@
 import { Notice, Setting } from "obsidian";
+import { Searchable, SearchQuery } from "../domain/SearchQuery";
 import { labelsCsv, labelsFileName, LabelRow, LabelSelection } from "../domain/LabelExport";
 import { saveTextFile } from "./FileDownload";
+import { SearchField } from "./SearchField";
 import { STRINGS } from "./strings";
 
 /** What the list shows for one thing that can get a label. */
@@ -23,6 +25,8 @@ export interface LabelExportConfig<T extends LabelSubject> {
   readonly drawFilter?: (parent: HTMLElement, redraw: () => void) => void;
   /** The things to list, in the order to show, after the filter. */
   readonly subjects: () => T[];
+  /** What a search looks at on one thing of the list. */
+  readonly searchable: (subject: T) => Searchable;
   /** A line under the list, for what was left out, or null. */
   readonly note?: () => string | null;
   readonly rows: (chosen: T[]) => Promise<LabelRow[]>;
@@ -36,6 +40,8 @@ export interface LabelExportConfig<T extends LabelSubject> {
 export class LabelExportPanel<T extends LabelSubject> {
   private readonly selection = new LabelSelection();
   private busy = false;
+  /** What is typed in the search field; kept while the settings stay open. */
+  private query = "";
 
   constructor(private readonly config: LabelExportConfig<T>) {}
 
@@ -44,15 +50,35 @@ export class LabelExportPanel<T extends LabelSubject> {
     new Setting(parent).setName(this.config.name).setDesc(this.config.desc).setHeading();
     const host = parent.createDiv({ cls: "inventory-ui__export" });
     this.config.drawFilter?.(host, () => this.draw(list));
+    this.renderSearch(host, () => this.draw(list));
     const list = host.createDiv();
     this.draw(list);
   }
 
+  /** The search field above the list: the same field as everywhere, with tag chips from this list. */
+  private renderSearch(parent: HTMLElement, redraw: () => void): void {
+    const host = parent.createDiv({ cls: "inventory-ui__export-search" });
+    new SearchField(host, {
+      placeholder: STRINGS.exportSearch,
+      initial: this.query,
+      tags: () => this.config.subjects().flatMap((subject) => this.config.searchable(subject).tags),
+      onChange: (query) => {
+        this.query = query;
+        redraw();
+      },
+    });
+  }
+
   private draw(host: HTMLElement): void {
     host.empty();
-    const subjects = this.config.subjects();
-    if (subjects.length === 0) {
+    const everything = this.config.subjects();
+    if (everything.length === 0) {
       host.createEl("p", { text: this.config.emptyText, cls: "inventory-ui__export-empty" });
+      return;
+    }
+    const subjects = SearchQuery.parse(this.query).filter(everything, (subject) => this.config.searchable(subject));
+    if (subjects.length === 0) {
+      host.createEl("p", { text: STRINGS.exportNoMatch, cls: "inventory-ui__export-empty" });
       return;
     }
 
@@ -60,7 +86,7 @@ export class LabelExportPanel<T extends LabelSubject> {
     const actions = new Setting(host)
       .addButton((button) =>
         button.setButtonText(STRINGS.exportSelectAll).onClick(() => {
-          this.selection.selectAll();
+          this.selection.selectAll(subjects);
           this.draw(host);
         }),
       )

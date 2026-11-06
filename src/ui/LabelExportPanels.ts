@@ -4,6 +4,7 @@ import { itemLabelRows, LocationLabelExport } from "../domain/LabelExport";
 import { entriesInLocation } from "../domain/LocationBoard";
 import { Item } from "../domain/Item";
 import { Place } from "../domain/Place";
+import { searchableItem, searchablePlace } from "../domain/SearchQuery";
 import { LabelExportPanel } from "./LabelExportPanel";
 import { SelectField } from "./SelectField";
 import { STRINGS } from "./strings";
@@ -25,6 +26,7 @@ export function locationExportPanel(deps: LocationExportDeps): LabelExportPanel<
     emptyText: STRINGS.exportNoPlaces,
     fileWhat: "locations",
     subjects: () => deps.places().slice().sort(byName),
+    searchable: searchablePlace,
     rows: (chosen) => deps.exporter.rows(chosen, deps.vaultName()),
   });
 }
@@ -83,6 +85,7 @@ export function itemExportPanel(deps: ItemExportDeps): LabelExportPanel<Item> {
       withoutId = items.filter((item) => item.id.trim() === "").length;
       return items.filter((item) => item.id.trim() !== "").sort(byName);
     },
+    searchable: searchableItem,
     note: () => (withoutId > 0 ? STRINGS.exportItemsSkipped(withoutId) : null),
     rows: (chosen) => Promise.resolve(itemLabelRows(chosen, deps.vaultName())),
   });

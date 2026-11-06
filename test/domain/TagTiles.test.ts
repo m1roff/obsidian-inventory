@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LocationTile, tilesMatchingTags } from "../../src/domain/LocationBoard";
+import { LocationTile, tilesMatching } from "../../src/domain/LocationBoard";
 import { cleanTag, mergeTagNames, parseTagList } from "../../src/domain/TagList";
 import { queryTags, tagsMatch } from "../../src/domain/TagQuery";
 
@@ -28,19 +28,23 @@ describe("queryTags and tagsMatch", () => {
   });
 });
 
-describe("tilesMatchingTags", () => {
+describe("tilesMatching", () => {
   const tiles = [tile("Box", ["garage"]), tile("Drawer", ["kitchen"]), tile("Shelf", [])];
 
-  it("leaves every place when the query has no tag", () => {
-    expect(tilesMatchingTags(tiles, "glue", null).map((t) => t.name)).toEqual(["Box", "Drawer", "Shelf"]);
+  it("leaves every place for an empty query", () => {
+    expect(tilesMatching(tiles, "  ", null).map((t) => t.name)).toEqual(["Box", "Drawer", "Shelf"]);
+  });
+
+  it("finds a place by a plain word in its name or id", () => {
+    expect(tilesMatching(tiles, "draw", null).map((t) => t.name)).toEqual(["Drawer"]);
   });
 
   it("keeps only the places that have the tag themselves", () => {
-    expect(tilesMatchingTags(tiles, "#gar", null).map((t) => t.name)).toEqual(["Box"]);
+    expect(tilesMatching(tiles, "#gar", null).map((t) => t.name)).toEqual(["Box"]);
   });
 
   it("keeps the place that is doing the filtering", () => {
-    expect(tilesMatchingTags(tiles, "#gar", "Shelf").map((t) => t.name)).toEqual(["Box", "Shelf"]);
+    expect(tilesMatching(tiles, "#gar", "Shelf").map((t) => t.name)).toEqual(["Box", "Shelf"]);
   });
 });
 

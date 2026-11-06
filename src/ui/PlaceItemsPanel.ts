@@ -7,7 +7,7 @@ import { DashboardPreferencesStore, placeItemLimit } from "../domain/DashboardPr
 import { entriesInLocation } from "../domain/LocationBoard";
 import { Place } from "../domain/Place";
 import { ItemRow } from "./ItemRow";
-import { addSearchClear } from "./SearchClear";
+import { SearchField } from "./SearchField";
 import { STRINGS } from "./strings";
 
 export interface PlaceItemsDeps {
@@ -25,7 +25,6 @@ interface Parts {
   readonly placePath: string;
   readonly count: HTMLElement;
   readonly searchWrap: HTMLElement;
-  readonly input: HTMLInputElement;
   readonly list: HTMLElement;
   readonly footer: HTMLElement;
   /** The items of this place as of the last read of the vault: typing filters these, it does not read again. */
@@ -79,37 +78,37 @@ export class PlaceItemsPanel {
       if (current) this.deps.onAdd(current);
     });
 
-    const searchWrap = host.createDiv({ cls: "inventory-ui__search-wrap" });
-    const input = searchWrap.createEl("input", {
-      cls: "inventory-ui__search",
-      attr: { type: "search", placeholder: STRINGS.placeItemsSearch, "aria-label": STRINGS.placeItemsSearch },
+    // The field and its tag chips share one wrapper, so a place without items can hide them together.
+    const searchWrap = host.createDiv();
+    const left = this.memory.get(place.path);
+    let parts: Parts | null = null;
+    new SearchField(searchWrap, {
+      placeholder: STRINGS.placeItemsSearch,
+      initial: left?.query ?? "",
+      // The tags of the items of this place only: that is what the search narrows here.
+      tags: () => (parts?.pool ?? []).flatMap((entry) => entry.item.tags),
+      onChange: (query) => {
+        if (!parts) return;
+        parts.query = query;
+        this.draw(parts);
+      },
     });
     const list = host.createDiv({ cls: "inventory-ui__list inventory-ui__place-items-list" });
     const footer = host.createDiv({ cls: "inventory-ui__place-items-footer" });
 
-    const left = this.memory.get(place.path);
-    const parts: Parts = {
+    const created: Parts = {
       placePath: place.path,
       count,
       searchWrap,
-      input,
       list,
       footer,
       pool: [],
       query: left?.query ?? "",
       expanded: left?.expanded ?? false,
     };
-    input.value = parts.query;
-    addSearchClear(searchWrap, input, () => {
-      parts.query = "";
-      this.draw(parts);
-    });
-    input.addEventListener("input", () => {
-      parts.query = input.value;
-      this.draw(parts);
-    });
-    this.parts.set(host, parts);
-    return parts;
+    parts = created;
+    this.parts.set(host, created);
+    return created;
   }
 
   /** Keeps what the owner set for this place, or forgets it when it is the plain state again. */
