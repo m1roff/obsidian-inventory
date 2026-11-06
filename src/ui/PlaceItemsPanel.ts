@@ -7,6 +7,7 @@ import { DashboardPreferencesStore, placeItemLimit } from "../domain/DashboardPr
 import { entriesInLocation } from "../domain/LocationBoard";
 import { Place } from "../domain/Place";
 import { ItemRow } from "./ItemRow";
+import { addSearchClear } from "./SearchClear";
 import { STRINGS } from "./strings";
 
 export interface PlaceItemsDeps {
@@ -33,13 +34,22 @@ interface Parts {
   expanded: boolean;
 }
 
+/** What the owner left in a place's panel: kept while Obsidian is open, so coming back finds it as it was. */
+interface PanelMemory {
+  query: string;
+  expanded: boolean;
+}
+
 /**
  * The items stored in one place, drawn under the buttons in the place's note with the same
  * rows as the dashboard. The vault is read when the panel is drawn (the note opened or
  * something changed), never while the owner types in the search field. The search field,
- * what was typed and whether the list is open all survive a redraw.
+ * what was typed and whether the list is open all survive a redraw, and also leaving the note
+ * for an item card and coming back: they are remembered per place in memory (a few words each,
+ * dropped again once the panel is back to its plain state), with no timers and no file writes.
  */
 export class PlaceItemsPanel {
+  private readonly memory = new Map<string, PanelMemory>();
   private readonly parts = new WeakMap<HTMLElement, Parts>();
   /** The place each panel shows now, read when its button is pressed (the place may be renamed). */
   private readonly current = new WeakMap<HTMLElement, Place>();
@@ -77,7 +87,23 @@ export class PlaceItemsPanel {
     const list = host.createDiv({ cls: "inventory-ui__list inventory-ui__place-items-list" });
     const footer = host.createDiv({ cls: "inventory-ui__place-items-footer" });
 
-    const parts: Parts = { placePath: place.path, count, searchWrap, input, list, footer, pool: [], query: "", expanded: false };
+    const left = this.memory.get(place.path);
+    const parts: Parts = {
+      placePath: place.path,
+      count,
+      searchWrap,
+      input,
+      list,
+      footer,
+      pool: [],
+      query: left?.query ?? "",
+      expanded: left?.expanded ?? false,
+    };
+    input.value = parts.query;
+    addSearchClear(searchWrap, input, () => {
+      parts.query = "";
+      this.draw(parts);
+    });
     input.addEventListener("input", () => {
       parts.query = input.value;
       this.draw(parts);
@@ -86,7 +112,14 @@ export class PlaceItemsPanel {
     return parts;
   }
 
+  /** Keeps what the owner set for this place, or forgets it when it is the plain state again. */
+  private remember(parts: Parts): void {
+    if (parts.query === "" && !parts.expanded) this.memory.delete(parts.placePath);
+    else this.memory.set(parts.placePath, { query: parts.query, expanded: parts.expanded });
+  }
+
   private draw(parts: Parts): void {
+    this.remember(parts);
     const { settings, itemsSort, itemsSortReversed } = this.deps.preferences.get();
     const found = this.deps.search.filter(parts.pool, parts.query);
     const sorted = this.deps.sorter.sort(found, itemsSort, itemsSortReversed);

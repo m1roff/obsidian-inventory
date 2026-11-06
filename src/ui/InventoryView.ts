@@ -41,6 +41,7 @@ import { scanQrFromPhoto } from "./QrScanner";
 import { INVENTORY_ICON_ID } from "./InventoryIcon";
 import { Haptics } from "./Haptics";
 import { PhotoAttacher } from "./PhotoAttacher";
+import { addSearchClear, SearchClear } from "./SearchClear";
 import { SetupPanel } from "./SetupPanel";
 import { StockStatePolicy } from "../domain/StockState";
 import { SetupService } from "../domain/structure/SetupService";
@@ -93,7 +94,7 @@ export class InventoryView extends ItemView {
   private listEl: HTMLElement | null = null;
   private scrollEl: HTMLElement | null = null;
   private tagSuggestEl: HTMLElement | null = null;
-  private searchClearEl: HTMLElement | null = null;
+  private searchClear: SearchClear | null = null;
   /** Tags seen on the items at the last redraw: what "#" offers while typing. */
   private knownTags: string[] = [];
   private refreshTimer: number | null = null;
@@ -171,30 +172,15 @@ export class InventoryView extends ItemView {
       placeholder: STRINGS.searchPlaceholder,
     });
     this.searchEl.value = this.query;
-    const clearButton = searchWrap.createEl("button", {
-      cls: "inventory-ui__search-clear",
-      attr: { "aria-label": STRINGS.searchClear },
+    this.searchClear = addSearchClear(searchWrap, this.searchEl, () => {
+      this.query = "";
+      this.renderList();
+      this.updateTagSuggestions();
     });
-    setIcon(clearButton, "x");
-    this.searchClearEl = clearButton;
-    const syncClear = (): void => this.syncSearchClear();
-    syncClear();
     this.searchEl.addEventListener("input", () => {
       this.query = this.searchEl?.value ?? "";
-      syncClear();
       this.renderList();
       this.updateTagSuggestions();
-    });
-    // Keeps the focus in the field, so the keyboard stays up for a new search.
-    clearButton.addEventListener("mousedown", (event) => event.preventDefault());
-    clearButton.addEventListener("click", () => {
-      if (!this.searchEl) return;
-      this.searchEl.value = "";
-      this.query = "";
-      syncClear();
-      this.renderList();
-      this.updateTagSuggestions();
-      this.searchEl.focus();
     });
     this.searchEl.addEventListener("blur", () => {
       // A little later, so a tap on a suggestion still lands.
@@ -520,7 +506,7 @@ export class InventoryView extends ItemView {
 
   /** The "x" in the search field shows only while there is something to clear. */
   private syncSearchClear(): void {
-    this.searchClearEl?.toggleClass("is-visible", (this.searchEl?.value ?? "") !== "");
+    this.searchClear?.sync();
   }
 
   /** Reads the inventory and draws everything. For changes of the data (notes changed, search). */

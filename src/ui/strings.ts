@@ -234,6 +234,7 @@ export const STRINGS = {
   addMore: "Add more",
   move: "Move",
   addPhoto: "Add photos",
+  placeItemsAllValue: "All",
   photoSectionTitle: (count: number): string =>
     count === 1 ? "Add 1 photo under" : `Add ${count} photos under`,
   photoSectionNew: "New section at the end of the note",

@@ -30,6 +30,14 @@ import { promptForName } from "./NamePrompt";
 import { SelectField } from "./SelectField";
 import { STRINGS } from "./strings";
 
+/**
+ * `SliderComponent.setDisplayFormat` exists since Obsidian 1.13, above the version this plugin
+ * supports, so it is reached through this shape and only called when the running app has it.
+ */
+interface FormattableSlider {
+  setDisplayFormat?: (format: (value: number) => string) => unknown;
+}
+
 export const SETTINGS_TABS = ["general", "dashboard", "locations", "items", "states", "mobile", "structure", "danger"] as const;
 export type SettingsTab = (typeof SETTINGS_TABS)[number];
 
@@ -234,6 +242,7 @@ export class InventorySettingTab extends PluginSettingTab {
       (value) => this.change({ placeItemsShown: value }),
       PLACE_ITEMS_MIN,
       PLACE_ITEMS_ALL,
+      (count) => (count >= PLACE_ITEMS_ALL ? STRINGS.placeItemsAllValue : String(count)),
     );
     new Setting(containerEl)
       .setName(STRINGS.placeIdsName)
@@ -547,17 +556,19 @@ export class InventorySettingTab extends PluginSettingTab {
     onChange: (value: number) => void,
     min = FOLDED_COUNT_MIN,
     max = FOLDED_COUNT_MAX,
+    /** What the number beside the slider reads as; the number itself by default. */
+    format?: (value: number) => string,
   ): void {
     new Setting(parent)
       .setName(name)
       .setDesc(description)
-      .addSlider((slider) =>
-        slider
-          .setLimits(min, max, 1)
-          .setValue(value)
-          .setDynamicTooltip()
-          .onChange(onChange),
-      );
+      .addSlider((slider) => {
+        slider.setLimits(min, max, 1).setValue(value).onChange(onChange);
+        const formattable = slider as unknown as FormattableSlider;
+        // The inline readout and its formatter came with Obsidian 1.13; older ones show a tooltip.
+        if (format && typeof formattable.setDisplayFormat === "function") formattable.setDisplayFormat(format);
+        else slider.setDynamicTooltip();
+      });
   }
 
   private change(patch: Partial<DashboardSettings>): void {
