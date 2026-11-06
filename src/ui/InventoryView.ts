@@ -16,6 +16,7 @@ import {
   entriesInLocation,
   LocationBoard,
   LocationPreferencesStore,
+  withSelectedFirst,
 } from "../domain/LocationBoard";
 import {
   DashboardPreferencesStore,
@@ -70,6 +71,8 @@ export interface InventoryViewDeps {
   readonly preferences: DashboardPreferencesStore;
   readonly qrDecoder: QrDecoder;
   readonly placeQr: PlaceQr;
+  /** Opens the plugin settings on the Locations tab. */
+  readonly openLocationSettings: () => void;
   readonly setup: SetupService;
   readonly states: () => StockStatePolicy;
   /** Called when the dashboard goes away, with what it was showing. */
@@ -220,6 +223,7 @@ export class InventoryView extends ItemView {
           void this.openCard(tile.path);
         },
         onAddLocation: () => this.addLocation(),
+        onOpenSettings: () => this.deps.openLocationSettings(),
         onQr: (tile) => {
           void this.deps.placeQr.open(tile);
         },
@@ -505,7 +509,7 @@ export class InventoryView extends ItemView {
     if (this.locationFilter && !tiles.some((t) => t.name === this.locationFilter)) {
       this.locationFilter = null;
     }
-    this.board?.render(tiles, this.locationFilter);
+    this.board?.render(withSelectedFirst(tiles, this.locationFilter), this.locationFilter);
 
     const pool = this.locationFilter
       ? entriesInLocation(all, this.locationFilter)

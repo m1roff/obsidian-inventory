@@ -129,6 +129,32 @@ export const STRINGS = {
   placeIdsNothingToDo: "All places already have an id",
   placeIdsDone: (count: number): string =>
     count === 0 ? "All places already have an id" : `Ids given to ${count} place(s)`,
+  qrCsvName: "Table for printing",
+  qrCsvDesc:
+    "A CSV file with this label: id, name and the link its code carries. A label printer program (for example P-touch Editor) can fill a template from it.",
+  qrCsvButton: "Share CSV",
+  boardSettings: "Settings of locations",
+  iconsName: "Icons",
+  iconsDesc:
+    "The small pictures from the middle of QR labels, as PNG files you can use anywhere (for example on a label template). Black on a see-through ground, large and sharp, a light file. On a phone they go through the share sheet, on a computer they are downloaded.",
+  iconItemName: "Item icon",
+  iconItemDesc: "The box. It is in the middle of an item's QR label.",
+  iconPlaceName: "Place icon",
+  iconPlaceDesc: "The box with a map pin under it. It is in the middle of a location's QR label.",
+  iconShare: "Share",
+  iconDone: (fileName: string): string => `Icon ${fileName} is ready`,
+  iconTapAgain: "The icon was not ready yet. Tap Share once more.",
+  exportLocationsName: "Export labels of locations",
+  exportLocationsDesc:
+    "Makes a table (a CSV file) of the locations you tick below: id, name and the link their QR code carries. A label printer program (for example P-touch Editor) can read it, so you set the label up once and it fills in every label itself. Untick what is already printed. A location without an id gets one now. On a phone the file goes through the share sheet (Save to Files, AirDrop, Mail), on a computer it is downloaded.",
+  exportTapAgain: "Ids were added to some locations. Tap Export CSV once more to share the file.",
+  exportSelectAll: "Select all",
+  exportDeselectAll: "Deselect all",
+  exportSelectedCount: (selected: number, total: number): string => `Selected ${selected} of ${total}`,
+  exportNoId: "no id yet",
+  exportNoPlaces: "There are no locations yet.",
+  exportButton: "Export CSV",
+  exportDone: (count: number): string => `Exported ${count} location(s)`,
   resetName: "Factory settings",
   resetDesc:
     "Puts everything above back to how it was when you installed the plugin. It also makes the dashboard forget what it remembered: pinned locations, the order of lists, and which blocks were folded or open. Your items and notes stay as they are.",

@@ -9,9 +9,11 @@ declare module "obsidian" {
       disablePlugin(id: string): Promise<void>;
       enablePlugin(id: string): Promise<void>;
     };
-    /** The settings window; undocumented, used to close it when jumping to the dashboard. */
+    /** The settings window; undocumented, used to open it on a given tab and to close it when jumping to the dashboard. */
     setting?: {
+      open(): void;
       close(): void;
+      openTabById(id: string): void;
     };
     internalPlugins?: {
       getEnabledPluginById?(id: string): unknown;

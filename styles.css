@@ -540,7 +540,8 @@
 }
 
 /* The round accent "+" next to the title: the same bubble as the tag "+". */
-.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add {
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add,
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-settings {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -557,7 +558,13 @@
   box-shadow: none;
 }
 
-.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add .svg-icon {
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-settings {
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+}
+
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-add .svg-icon,
+.inventory-ui .inventory-ui__board-head button.inventory-ui__board-settings .svg-icon {
   width: 16px;
   height: 16px;
 }
@@ -856,6 +863,64 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
    the display rules of the dashboard's own blocks. */
 .inventory-ui .inventory-ui__hidden {
   display: none;
+}
+
+/* Icon previews (settings, General): black on white, the way the icon prints */
+.inventory-ui__icon-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  margin-right: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: #fff;
+}
+
+.inventory-ui__icon-preview canvas {
+  max-width: 52px;
+  max-height: 52px;
+  width: auto;
+  height: auto;
+}
+
+/* Export of labels (settings, Locations) */
+.inventory-ui__export-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui__export-list {
+  max-height: 40vh;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+.inventory-ui__export-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-2) var(--size-4-3);
+  cursor: pointer;
+}
+
+.inventory-ui__export-row + .inventory-ui__export-row {
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.inventory-ui__export-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui__export-id {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
 }
 
 .inventory-ui__confirm-items {

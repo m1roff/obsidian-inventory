@@ -22,6 +22,26 @@ export class PlaceIds {
     return id;
   }
 
+  /**
+   * Ids of the given places, in the same order; those without one get a new one.
+   * The used ids are tracked here, because the vault may not show a just-written id yet.
+   */
+  async ensureMany(places: readonly Place[]): Promise<string[]> {
+    const used = this.usedIds();
+    const ids: string[] = [];
+    for (const place of places) {
+      if (place.id !== "") {
+        ids.push(place.id);
+        continue;
+      }
+      const id = this.generator.generate("place", used);
+      await this.writer.setId(place.path, id);
+      used.add(id);
+      ids.push(id);
+    }
+    return ids;
+  }
+
   /** The places that have no id yet. */
   withoutId(): Place[] {
     return this.lists.places().filter((place) => place.id === "");

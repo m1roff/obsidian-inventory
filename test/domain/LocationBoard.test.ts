@@ -9,6 +9,7 @@ import {
   movePinned,
   parseLocationPreferences,
   togglePinned,
+  withSelectedFirst,
 } from "../../src/domain/LocationBoard";
 import { StockPosition } from "../../src/domain/StockPosition";
 import { StockState } from "../../src/domain/StockState";
@@ -95,5 +96,19 @@ describe("parseLocationPreferences", () => {
       sort: "updated",
       expanded: true,
     });
+  });
+});
+
+describe("withSelectedFirst", () => {
+  const tiles = board.tiles(placesOf(locations), entries, prefs({ pinned: ["Printer", "Empty"] }));
+
+  it("puts the filtering location first even when others are pinned, keeping the rest in order", () => {
+    expect(names(withSelectedFirst(tiles, "Shelf"))).toEqual(["Shelf", "Printer", "Empty", "Box"]);
+    expect(names(withSelectedFirst(tiles, "Empty"))).toEqual(["Empty", "Printer", "Box", "Shelf"]);
+  });
+
+  it("changes nothing without a filter or for an unknown name", () => {
+    expect(names(withSelectedFirst(tiles, null))).toEqual(names(tiles));
+    expect(names(withSelectedFirst(tiles, "Gone"))).toEqual(names(tiles));
   });
 });

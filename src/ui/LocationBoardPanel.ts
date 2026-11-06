@@ -15,6 +15,8 @@ import { PhotoAttacher } from "./PhotoAttacher";
 import { STRINGS } from "./strings";
 
 export interface LocationBoardPanelDeps {
+  /** Opens the plugin settings on the Locations tab. */
+  readonly onOpenSettings: () => void;
   readonly app: App;
   readonly preferences: LocationPreferencesStore;
   /** How many tiles a folded block still shows. */
@@ -111,6 +113,14 @@ export class LocationBoardPanel {
     });
     setIcon(add, "plus");
     add.addEventListener("click", () => this.deps.onAddLocation());
+
+    // The settings of locations, one tap away instead of the menu and a hunt for the tab.
+    const settings = head.createEl("button", {
+      cls: "inventory-ui__board-settings",
+      attr: { "aria-label": STRINGS.boardSettings },
+    });
+    setIcon(settings, "settings");
+    settings.addEventListener("click", () => this.deps.onOpenSettings());
   }
 
   private renderSortSwitch(preferences: LocationPreferences): void {

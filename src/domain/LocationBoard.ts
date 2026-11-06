@@ -117,6 +117,15 @@ export class LocationBoard {
   }
 }
 
+/**
+ * The tiles as shown while a location filters the list: that one goes first, pinned or not,
+ * so a folded row never hides the place that is doing the filtering. The pinned order itself is not changed.
+ */
+export function withSelectedFirst(tiles: readonly LocationTile[], selected: string | null): LocationTile[] {
+  const chosen = tiles.find((tile) => tile.name === selected);
+  return chosen ? [chosen, ...tiles.filter((tile) => tile !== chosen)] : [...tiles];
+}
+
 /** Pins an unpinned location (at the end), or unpins a pinned one. */
 export function togglePinned(pinned: readonly string[], name: string): string[] {
   return pinned.includes(name)

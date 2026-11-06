@@ -51,6 +51,7 @@ import { renderQrLabel } from "./ui/QrLabelRenderer";
 import { INVENTORY_ICON_ID, inventoryIconMarkup } from "./ui/InventoryIcon";
 import { InventoryLogo, PlaceLogo } from "./ui/QrLogo";
 import { QrLabels } from "./ui/QrLabels";
+import { LocationLabelExport } from "./domain/LabelExport";
 import { InventorySettingTab } from "./ui/InventorySettingTab";
 import { ItemActions } from "./ui/ItemActions";
 import { STRINGS } from "./ui/strings";
@@ -129,11 +130,12 @@ export default class InventoryUiPlugin extends Plugin {
 
     const qrDecoder = new JsQrDecoder();
     const itemLogo = new InventoryLogo();
+    const placeLogo = new PlaceLogo(itemLogo);
     const qrEncoder = new UqrEncoder();
     const qrLabels = new QrLabels(this.app, {
       encoder: qrEncoder,
       itemLogo,
-      placeLogo: new PlaceLogo(itemLogo),
+      placeLogo,
       style: () => preferences.get().settings.qrStyle,
     });
 
@@ -161,6 +163,14 @@ export default class InventoryUiPlugin extends Plugin {
       void this.app.workspace.openLinkText(entry.item.path, "", false);
     });
 
+    // The settings tab is made below; the views reach it only when a button is pressed.
+    let settingTab: InventorySettingTab | null = null;
+    const openLocationSettings = (): void => {
+      settingTab?.showTab("locations");
+      this.app.setting?.open();
+      this.app.setting?.openTabById(this.manifest.id);
+    };
+
     this.registerView(
       INVENTORY_VIEW_TYPE,
       (leaf) =>
@@ -181,6 +191,7 @@ export default class InventoryUiPlugin extends Plugin {
           qrDecoder,
           placeQr,
           setup,
+          openLocationSettings,
           states: () => stockStatePolicy(preferences.get()),
           rememberFilter: (filter) => {
             this.lastFilter = filter;
@@ -199,14 +210,15 @@ export default class InventoryUiPlugin extends Plugin {
       },
     });
 
-    this.addSettingTab(
-      new InventorySettingTab(this.app, this, {
+    settingTab = new InventorySettingTab(this.app, this, {
         preferences,
         placeIds,
         openStructure,
         onChanged: () => this.refreshDashboards(),
         references,
         defaultLocation,
+        locationExport: new LocationLabelExport(placeIds),
+        icons: { itemLogo, placeLogo },
         qrSample: (style) =>
           renderQrLabel(
             qrEncoder.encode(buildItemLink("Inventory", "AB-CD-123")),
@@ -220,8 +232,8 @@ export default class InventoryUiPlugin extends Plugin {
           this.app.setting?.close();
           void this.showSearchOnDashboard(stateQuery(state));
         },
-      }),
-    );
+    });
+    this.addSettingTab(settingTab);
 
     new CardToolbar(this, {
       sources: [

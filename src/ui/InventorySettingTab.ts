@@ -10,6 +10,7 @@ import {
 } from "../domain/DashboardPreferences";
 import { AddReferenceError } from "../domain/AddReferenceService";
 import { DefaultLocation } from "../domain/DefaultLocation";
+import { LocationLabelExport } from "../domain/LabelExport";
 import { PlaceIds } from "../domain/PlaceIds";
 import { QR_STYLES, QrStyle } from "../domain/QrStyle";
 import { ReferenceLists } from "../domain/ReferenceLists";
@@ -17,6 +18,8 @@ import { StateUsage } from "../domain/StateUsage";
 import { isBuiltInState, StockStateError, StockStatePolicy } from "../domain/StockState";
 import { isValidBaseFolder, normalizeBaseFolder } from "../domain/structure/StructureLayout";
 import { confirmAction } from "./ConfirmModal";
+import { IconExportDeps, IconExportPanel } from "./IconExportPanel";
+import { LocationExportPanel } from "./LocationExportPanel";
 import { promptForName } from "./NamePrompt";
 import { SelectField } from "./SelectField";
 import { STRINGS } from "./strings";
@@ -40,6 +43,10 @@ export interface InventorySettingTabDeps {
   readonly showState: (state: string) => void;
   readonly references: ReferenceLists;
   readonly defaultLocation: DefaultLocation;
+  /** Builds the label table of locations for export. */
+  readonly locationExport: LocationLabelExport;
+  /** The QR emblems that can be shared as PNG files. */
+  readonly icons: IconExportDeps;
   /** Draws a sample QR code in the given look, to choose from. */
   readonly qrSample: (style: QrStyle) => HTMLCanvasElement;
 }
@@ -52,6 +59,8 @@ export class InventorySettingTab extends PluginSettingTab {
   private modulesEl: HTMLElement | null = null;
   /** Read once when the tab opens: reading the vault on every tick would be wasteful. */
   private usage: StateUsage | null = null;
+  private readonly exportPanel: LocationExportPanel;
+  private readonly iconPanel: IconExportPanel;
 
   constructor(
     app: App,
@@ -59,6 +68,18 @@ export class InventorySettingTab extends PluginSettingTab {
     private readonly deps: InventorySettingTabDeps,
   ) {
     super(app, plugin);
+    this.exportPanel = new LocationExportPanel({
+      places: () => deps.references.places(),
+      vaultName: () => app.vault.getName(),
+      exporter: deps.locationExport,
+    });
+    this.iconPanel = new IconExportPanel(deps.icons);
+  }
+
+  /** Makes the next opening of the settings land on this tab (the gear button on the dashboard). */
+  showTab(tab: SettingsTab): void {
+    this.flush();
+    this.tab = tab;
   }
 
   display(): void {
@@ -102,7 +123,7 @@ export class InventorySettingTab extends PluginSettingTab {
   /** QR labels. */
   private renderGeneral(containerEl: HTMLElement, settings: DashboardSettings): void {
     this.addQrStyle(containerEl, settings.qrStyle);
-
+    this.iconPanel.render(containerEl);
   }
 
   /** The main screen. */
@@ -154,7 +175,7 @@ export class InventorySettingTab extends PluginSettingTab {
       .addButton((button) =>
         button.setButtonText(STRINGS.placeIdsButton).onClick(() => this.confirmPlaceIds()),
       );
-
+    this.exportPanel.render(containerEl);
   }
 
   /** The stock states list. */

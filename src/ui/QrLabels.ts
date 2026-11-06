@@ -5,6 +5,8 @@ import { Place } from "../domain/Place";
 import { QrEncoder } from "../domain/QrCode";
 import { QrLabelOptions, qrFileName } from "../domain/QrLabel";
 import { QrStyle, qrPalette } from "../domain/QrStyle";
+import { labelsCsv, labelsFileName } from "../domain/LabelExport";
+import { saveTextFile } from "./FileDownload";
 import { guardKeyboard } from "./KeyboardGuard";
 import { QrLogo } from "./QrLogo";
 import { renderQrLabel } from "./QrLabelRenderer";
@@ -140,6 +142,11 @@ class QrLabelModal extends Modal {
     this.captionSetting.settingEl.toggle(this.options.showCaption);
 
     new Setting(contentEl)
+      .setName(STRINGS.qrCsvName)
+      .setDesc(STRINGS.qrCsvDesc)
+      .addButton((button) => button.setButtonText(STRINGS.qrCsvButton).onClick(() => void this.shareCsv()));
+
+    new Setting(contentEl)
       .addButton((button) =>
         button
           .setButtonText(STRINGS.qrShare)
@@ -169,6 +176,18 @@ class QrLabelModal extends Modal {
       // Ignore a result that arrives after a newer drawing replaced this canvas.
       if (this.previewEl?.firstChild === canvas) this.blob = blob;
     }, "image/png");
+  }
+
+  /** The same label as one row of the table a label printer program reads: id, name, link. */
+  private async shareCsv(): Promise<void> {
+    const row = { id: this.subject.id, name: this.subject.name, link: this.subject.link(this.app.vault.getName()) };
+    try {
+      const outcome = await saveTextFile(labelsFileName(this.subject.id, new Date()), labelsCsv([row]));
+      if (outcome !== "cancelled") new Notice(STRINGS.exportDone(1));
+    } catch (error) {
+      console.error(error);
+      new Notice(STRINGS.unexpectedError);
+    }
   }
 
   private share(): void {
