@@ -1,5 +1,6 @@
 import { App } from "obsidian";
 import { CoverRemover, CoverWriter } from "../domain/CoverWriter";
+import { DebugLog, NO_DEBUG_LOG } from "../domain/DebugLog";
 import { appendToEnd } from "../domain/MarkdownSection";
 import { VaultImageStore } from "./VaultImageStore";
 
@@ -11,8 +12,11 @@ import { VaultImageStore } from "./VaultImageStore";
 export class VaultPlaceCoverWriter implements CoverWriter, CoverRemover {
   private readonly images: VaultImageStore;
 
-  constructor(private readonly app: App) {
-    this.images = new VaultImageStore(app);
+  constructor(
+    private readonly app: App,
+    private readonly log: DebugLog = NO_DEBUG_LOG,
+  ) {
+    this.images = new VaultImageStore(app, log);
   }
 
   async attach(placePath: string, fileName: string, bytes: ArrayBuffer): Promise<void> {
@@ -21,11 +25,14 @@ export class VaultPlaceCoverWriter implements CoverWriter, CoverRemover {
 
     const image = await this.images.save(fileName, placePath, bytes);
     const link = this.images.linkFrom(image, placePath);
+    this.log.write("place-cover", "link built", { link });
     // Right after saving, so the image gets an owner before Steward's grace period ends.
     await this.app.vault.process(note, (content) => appendToEnd(content, `!${link}`));
+    this.log.write("place-cover", "embed added to the end of the note");
     await this.app.fileManager.processFrontMatter(note, (fm: Record<string, unknown>) => {
       fm.cover = link;
     });
+    this.log.write("place-cover", "cover property written", { cover: link });
   }
 
   async remove(placePath: string): Promise<void> {

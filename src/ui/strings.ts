@@ -341,6 +341,17 @@ export const STRINGS = {
   hapticsName: "Touch feedback",
   hapticsDesc:
     "A tiny tick under your finger on a phone or tablet: when you flip a switch or tick a box in this plugin, and while you hold a location tile: the ticks grow until its menu opens. Nothing happens on a computer. Turn it off if you do not like it.",
+  debugLogName: "Debug log",
+  debugLogDesc:
+    "When something does not work and you do not see why, switch this on and repeat the action. The plugin then writes down what it does, step by step, while you add a photo. Nothing is written while this is off. Then tap Copy log and send the text to the developer. Leave it off the rest of the time.",
+  debugLogCopyName: "Debug log text",
+  debugLogCopyDesc: "Copy what was written, or wipe it to start a clean record before the next try.",
+  debugLogCopy: "Copy log",
+  debugLogClear: "Clear log",
+  debugLogCopied: "Log copied",
+  debugLogEmpty: "The log is empty",
+  debugLogCopyFailed: "Could not copy. The log is in the plugin folder, file debug.log",
+  debugLogCleared: "Log cleared",
   hapticsDesktopNote: "Available only on a phone or tablet.",
   qrLightName: "Dark background",
   qrLightDesc:

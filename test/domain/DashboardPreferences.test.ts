@@ -67,7 +67,7 @@ describe("settings", () => {
 
   it("reads the settings and falls back to 3 for missing ones", () => {
     const parsed = parseDashboardPreferences({ settings: { foldedItemCount: 7 } });
-    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10 });
+    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false });
   });
 
   it("reads the remembered item sort and ignores nonsense", () => {
@@ -77,7 +77,7 @@ describe("settings", () => {
 
   it("has factory defaults that a reset can restore", () => {
     expect(DEFAULT_DASHBOARD_PREFERENCES).toEqual({
-      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10 },
+      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false },
       locations: { pinned: [], sort: "alpha", reversed: false, expanded: false },
       itemsExpanded: false,
       itemsSort: "created",
@@ -135,5 +135,13 @@ describe("QR style setting", () => {
     expect(parseDashboardPreferences({ settings: {} }).settings.qrStyle).toBe("light");
     expect(parseDashboardPreferences({ settings: { qrStyle: "dark" } }).settings.qrStyle).toBe("dark");
     expect(parseDashboardPreferences({ settings: { qrStyle: "pink" } }).settings.qrStyle).toBe("light");
+  });
+});
+
+describe("debugLog setting", () => {
+  it("is off unless explicitly on", () => {
+    expect(parseDashboardPreferences({ settings: {} }).settings.debugLog).toBe(false);
+    expect(parseDashboardPreferences({ settings: { debugLog: "yes" } }).settings.debugLog).toBe(false);
+    expect(parseDashboardPreferences({ settings: { debugLog: true } }).settings.debugLog).toBe(true);
   });
 });

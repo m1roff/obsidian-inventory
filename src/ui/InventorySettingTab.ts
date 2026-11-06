@@ -57,6 +57,8 @@ export interface InventorySettingTabDeps {
   readonly icons: IconExportDeps;
   /** Draws a sample QR code in the given look, to choose from. */
   readonly qrSample: (style: QrStyle) => HTMLCanvasElement;
+  /** The file the debug log is kept in. */
+  readonly debugLog: { read(): Promise<string>; clear(): Promise<void> };
 }
 
 export class InventorySettingTab extends PluginSettingTab {
@@ -141,6 +143,44 @@ export class InventorySettingTab extends PluginSettingTab {
   private renderGeneral(containerEl: HTMLElement, settings: DashboardSettings): void {
     this.addQrStyle(containerEl, settings.qrStyle);
     this.iconPanel.render(containerEl);
+    this.addDebugLog(containerEl, settings.debugLog);
+  }
+
+  /** The switch for the trace of photo steps, and buttons to take the text away or wipe it. */
+  private addDebugLog(parent: HTMLElement, on: boolean): void {
+    new Setting(parent)
+      .setName(STRINGS.debugLogName)
+      .setDesc(STRINGS.debugLogDesc)
+      .addToggle((toggle) => toggle.setValue(on).onChange((value) => this.change({ debugLog: value })));
+    new Setting(parent)
+      .setName(STRINGS.debugLogCopyName)
+      .setDesc(STRINGS.debugLogCopyDesc)
+      .addButton((button) =>
+        button.setButtonText(STRINGS.debugLogCopy).onClick(() => void this.copyDebugLog()),
+      )
+      .addButton((button) =>
+        button.setButtonText(STRINGS.debugLogClear).onClick(() => {
+          this.deps.debugLog.clear().then(
+            () => new Notice(STRINGS.debugLogCleared),
+            (error: unknown) => console.error(error),
+          );
+        }),
+      );
+  }
+
+  private async copyDebugLog(): Promise<void> {
+    try {
+      const text = await this.deps.debugLog.read();
+      if (text === "") {
+        new Notice(STRINGS.debugLogEmpty);
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      new Notice(STRINGS.debugLogCopied);
+    } catch (error) {
+      console.error(error);
+      new Notice(STRINGS.debugLogCopyFailed);
+    }
   }
 
   /** The main screen. */

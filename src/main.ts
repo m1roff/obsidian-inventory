@@ -28,6 +28,7 @@ import { VaultStructure } from "./obsidian/VaultStructure";
 import { StructureModal } from "./ui/StructureModal";
 import { PluginPreferences } from "./obsidian/PluginPreferences";
 import { VaultCoverWriter } from "./obsidian/VaultCoverWriter";
+import { FileDebugLog } from "./obsidian/FileDebugLog";
 import { VaultPlaceCoverWriter } from "./obsidian/VaultPlaceCoverWriter";
 import { PhotoAttacher } from "./ui/PhotoAttacher";
 import { Haptics } from "./ui/Haptics";
@@ -88,9 +89,19 @@ export default class InventoryUiPlugin extends Plugin {
     const stock = new StockService(writer, clock);
     const haptics = new Haptics(new DeviceHaptics(), () => preferences.get().settings.haptics);
     installToggleHaptics(this, haptics);
-    const itemPhotos = new PhotoAttacher(new AttachCoverService(new VaultCoverWriter(this.app), clock));
-    const placeCovers = new VaultPlaceCoverWriter(this.app);
-    const placePhotos = new PhotoAttacher(new AttachCoverService(placeCovers, clock), placeCovers);
+    const debugLog = new FileDebugLog(
+      this.app,
+      `${this.manifest.dir ?? ""}/debug.log`,
+      () => preferences.get().settings.debugLog,
+      clock,
+    );
+    const itemPhotos = new PhotoAttacher(
+      new AttachCoverService(new VaultCoverWriter(this.app, debugLog), clock),
+      null,
+      debugLog,
+    );
+    const placeCovers = new VaultPlaceCoverWriter(this.app, debugLog);
+    const placePhotos = new PhotoAttacher(new AttachCoverService(placeCovers, clock), placeCovers, debugLog);
     const references = new VaultReferenceLists(this.app, folders);
     const referenceWriter = new VaultReferenceWriter(this.app, folders);
     const addReference = new AddReferenceService(references, referenceWriter, idGenerator);
@@ -240,6 +251,7 @@ export default class InventoryUiPlugin extends Plugin {
             itemLogo,
             qrPalette(style),
           ),
+        debugLog,
         stateUsage: () => new StateUsage(repository.loadEntries()),
         showState: (state) => {
           this.app.setting?.close();

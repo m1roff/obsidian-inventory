@@ -46,6 +46,8 @@ export interface DashboardSettings {
   readonly qrStyle: QrStyle;
   /** How many items a place's note shows before "Show all"; `PLACE_ITEMS_ALL` shows every one. */
   readonly placeItemsShown: number;
+  /** Keep a trace of what the plugin does with photos, for finding out why something failed. Off by default. */
+  readonly debugLog: boolean;
 }
 
 /** Settings plus what the dashboard remembers between sessions. */
@@ -74,6 +76,7 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
     haptics: true,
     qrStyle: DEFAULT_QR_STYLE,
     placeItemsShown: DEFAULT_PLACE_ITEMS,
+    debugLog: false,
   },
   locations: parseLocationPreferences(null),
   itemsExpanded: false,
@@ -141,6 +144,8 @@ export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
       haptics: own.haptics !== false,
       qrStyle: parseQrStyle(own.qrStyle),
       placeItemsShown: parsePlaceItemsShown(own.placeItemsShown),
+      // Only an explicit "on" turns it on.
+      debugLog: own.debugLog === true,
     },
     locations: parseLocationPreferences(locations),
     itemsExpanded: itemsExpanded === true,

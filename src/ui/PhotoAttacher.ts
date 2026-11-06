@@ -1,6 +1,7 @@
-import { Notice } from "obsidian";
+import { Notice, Platform } from "obsidian";
 import { AttachCoverService } from "../domain/AttachCoverService";
 import { CoverRemover } from "../domain/CoverWriter";
+import { describeError, DebugLog, NO_DEBUG_LOG } from "../domain/DebugLog";
 import { pickImageFile, prepareImage } from "../obsidian/ImagePicker";
 import { STRINGS } from "./strings";
 
@@ -13,6 +14,7 @@ export class PhotoAttacher {
   constructor(
     private readonly service: AttachCoverService,
     private readonly remover: CoverRemover | null = null,
+    private readonly log: DebugLog = NO_DEBUG_LOG,
   ) {}
 
   /**
@@ -20,16 +22,29 @@ export class PhotoAttacher {
    * unless it opens before the first `await`.
    */
   async attach(notePath: string, onBusy?: (busy: boolean) => void): Promise<void> {
-    const file = await pickImageFile();
-    if (!file) return;
+    this.log.write("photo", "attach requested", {
+      note: notePath,
+      mobile: Platform.isMobile,
+      ios: Platform.isIosApp,
+      phone: Platform.isPhone,
+      tablet: Platform.isTablet,
+    });
+    const file = await pickImageFile(this.log);
+    if (!file) {
+      this.log.write("photo", "nothing was picked, stopping");
+      return;
+    }
 
     onBusy?.(true);
     const notice = new Notice(STRINGS.savingPhoto, 0);
     try {
-      await this.service.attach(notePath, await prepareImage(file));
+      const image = await prepareImage(file, this.log);
+      await this.service.attach(notePath, image);
+      this.log.write("photo", "attached", { note: notePath });
       new Notice(STRINGS.photoSaved);
     } catch (error) {
       console.error(error);
+      this.log.write("photo", "attach failed", { error: describeError(error) });
       new Notice(STRINGS.photoFailed);
     } finally {
       notice.hide();
@@ -46,9 +61,11 @@ export class PhotoAttacher {
     if (!this.remover) return;
     try {
       await this.remover.remove(notePath);
+      this.log.write("photo", "removed", { note: notePath });
       new Notice(STRINGS.photoRemoved);
     } catch (error) {
       console.error(error);
+      this.log.write("photo", "remove failed", { error: describeError(error) });
       new Notice(STRINGS.photoFailed);
     }
   }
