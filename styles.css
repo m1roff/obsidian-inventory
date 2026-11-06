@@ -1326,7 +1326,8 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
   border-radius: 0 var(--radius-s) var(--radius-s) 0;
 }
 
-.inventory-ui .inventory-ui__list-footer.is-sticky .inventory-ui__footer-button:has(+ .inventory-ui__footer-button) {
+/* The first of several buttons (no :has: it makes the browser recheck far too much) */
+.inventory-ui .inventory-ui__list-footer.is-sticky .inventory-ui__footer-button:first-child:not(:last-child) {
   border-radius: var(--radius-s) 0 0 var(--radius-s);
 }
 
@@ -1363,17 +1364,18 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
   display: contents;
 }
 
-/* Prefixed with .modal and !important on size: Obsidian's mobile buttons are big and wide.
-   The look is Obsidian's own tag bubble: accent text on a faint accent wash. */
-.modal .inventory-ui__tags-row button.inventory-ui__chip {
+/* Obsidian's mobile buttons are big and wide, so the sizes must outrank its rules. That is done
+   by repeating the class (more specific, and no override flag needed). The look is Obsidian's own tag
+   bubble: accent text on a faint accent wash. */
+.modal .inventory-ui__tags-row button.inventory-ui__chip.inventory-ui__chip.inventory-ui__chip {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   gap: var(--size-2-2);
-  width: auto !important;
-  height: 28px !important;
-  min-height: 0 !important;
+  width: auto;
+  height: 28px;
+  min-height: 0;
   margin: 0;
   padding: 0 var(--size-4-2);
   border: none;
@@ -1385,8 +1387,8 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
   line-height: 1;
 }
 
-.modal .inventory-ui__tags-row button.inventory-ui__chip--add {
-  width: 28px !important;
+.modal .inventory-ui__tags-row button.inventory-ui__chip--add.inventory-ui__chip--add.inventory-ui__chip--add {
+  width: 28px;
   padding: 0;
   color: var(--text-accent);
 }
@@ -1449,13 +1451,13 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 }
 
 /* The round "?" that opens a hint, and the hint itself. */
-.modal .inventory-ui__help {
-  display: inline-flex !important;
+.modal .inventory-ui__help.inventory-ui__help.inventory-ui__help {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px !important;
-  height: 22px !important;
-  min-height: 0 !important;
+  width: 22px;
+  height: 22px;
+  min-height: 0;
   margin: 0 0 0 var(--size-4-2);
   padding: 0;
   border: none;
