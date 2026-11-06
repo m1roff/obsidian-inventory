@@ -153,6 +153,12 @@ export function buildSkeleton(
     }),
     // The id a place's QR label carries; kinds and tags simply do not use it.
     field("id", "PlcId1", "Input", {}),
+    // The same cloud of tags as the items have; kinds and tags lists do not use it either.
+    field("tags", "PlcTg1", "Multi", {
+      sourceType: "ValuesFromBase",
+      baseFile: layout.listsBase,
+      viewName: "TagsList",
+    }),
   ];
 
   const fileClasses: FileClassSpec[] = [

@@ -15,6 +15,7 @@ import { ReferenceLists } from "../domain/ReferenceLists";
 import { MIN_QUERY_LENGTH, SimilarItemFinder } from "../domain/SimilarItemFinder";
 import { QuantityField } from "./QuantityField";
 import { SelectField } from "./SelectField";
+import { mergeTagNames } from "../domain/TagList";
 import { TagsField } from "./TagsField";
 import { guardKeyboard } from "./KeyboardGuard";
 import { Haptics } from "./Haptics";
@@ -454,18 +455,16 @@ export class AddItemModal extends Modal {
   }
 
   /**
-   * Tags from the tags list plus those already written on the cards, also by hand in a note.
-   * A tag without spaces only: Obsidian does not treat anything with a space as a tag.
+   * One cloud: the tags list plus the tags already written on the cards and on the locations,
+   * also by hand in a note. A tag without spaces only: Obsidian does not treat anything with a
+   * space as a tag.
    */
   private availableTags(): string[] {
-    const all = new Map<string, string>();
-    const fromCards = this.options.entries.flatMap((entry) => entry.item.tags);
-    for (const tag of [...this.options.references.tags(), ...fromCards]) {
-      const clean = tag.replace(/^#+/, "").trim();
-      if (clean === "" || /\s/.test(clean)) continue;
-      if (!all.has(clean.toLowerCase())) all.set(clean.toLowerCase(), clean);
-    }
-    return [...all.values()];
+    return mergeTagNames(
+      this.options.references.tags(),
+      this.options.entries.flatMap((entry) => entry.item.tags),
+      this.options.references.places().flatMap((place) => place.tags),
+    );
   }
 
   /** Tags that come with the card (filament's) must exist in the tags list too. */

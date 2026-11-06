@@ -1,5 +1,6 @@
 import { InventoryEntry } from "./InventoryEntry";
 import { Place } from "./Place";
+import { queryTags, tagsMatch } from "./TagQuery";
 
 export const LOCATION_SORT_MODES = ["alpha", "added", "updated"] as const;
 
@@ -48,6 +49,7 @@ export interface LocationTile {
   readonly itemCount: number;
   /** Vault path of the place's photo, or null. */
   readonly cover: string | null;
+  readonly tags: readonly string[];
   readonly pinned: boolean;
   readonly lastAddedAt: number;
   readonly lastUpdatedAt: number;
@@ -78,6 +80,7 @@ export class LocationBoard {
         id: place.id,
         itemCount: own?.itemCount ?? 0,
         cover: place.cover,
+        tags: place.tags,
         pinned: pinnedNames.includes(place.name),
         lastAddedAt: own?.lastAddedAt ?? 0,
         lastUpdatedAt: own?.lastUpdatedAt ?? 0,
@@ -134,6 +137,21 @@ export class LocationBoard {
 export function withSelectedFirst(tiles: readonly LocationTile[], selected: string | null): LocationTile[] {
   const chosen = tiles.find((tile) => tile.name === selected);
   return chosen ? [chosen, ...tiles.filter((tile) => tile !== chosen)] : [...tiles];
+}
+
+/**
+ * The tiles a search query leaves: with `#tag` words in it, only the places that have those tags
+ * themselves (what is stored in them is not looked at: tags belong to the thing they are on).
+ * The place that is doing the filtering stays, so it can still be switched off.
+ */
+export function tilesMatchingTags(
+  tiles: readonly LocationTile[],
+  query: string,
+  keep: string | null,
+): LocationTile[] {
+  const wanted = queryTags(query);
+  if (wanted.length === 0) return [...tiles];
+  return tiles.filter((tile) => tile.name === keep || tagsMatch(tile.tags, wanted));
 }
 
 /** Pins an unpinned location (at the end), or unpins a pinned one. */

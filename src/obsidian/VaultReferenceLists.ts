@@ -1,5 +1,6 @@
 import { App } from "obsidian";
 import { Place } from "../domain/Place";
+import { parseTagList } from "../domain/TagList";
 import { parseWikiLink } from "../domain/WikiLink";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { InventoryFolders } from "./InventoryFolders";
@@ -36,6 +37,7 @@ export class VaultReferenceLists implements ReferenceLists {
           path: file.path,
           id: typeof id === "string" ? id.trim() : "",
           cover: link ? (this.app.metadataCache.getFirstLinkpathDest(link.target, file.path)?.path ?? null) : null,
+          tags: parseTagList(fm?.tags),
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

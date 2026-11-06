@@ -1,4 +1,5 @@
 import { InventoryEntry } from "./InventoryEntry";
+import { queryTags, tagsMatch } from "./TagQuery";
 
 const STATE_PREFIX = "state:";
 
@@ -25,7 +26,7 @@ export class InventorySearch {
   ): InventoryEntry[] {
     const all = query.toLowerCase().split(/\s+/).filter(Boolean);
     // A lone "#" is just the start of typing a tag: it filters nothing yet.
-    const tags = all.filter((word) => word.startsWith("#") && word.length > 1).map((word) => word.slice(1));
+    const tags = queryTags(query);
     const states = all
       .filter((word) => word.startsWith(STATE_PREFIX) && word.length > STATE_PREFIX.length)
       .map((word) => word.slice(STATE_PREFIX.length));
@@ -33,8 +34,7 @@ export class InventorySearch {
     if (words.length === 0 && tags.length === 0 && states.length === 0) return [...entries];
 
     return entries.filter((entry) => {
-      const itemTags = entry.item.tags.map((tag) => tag.toLowerCase());
-      if (!tags.every((tag) => itemTags.some((own) => own.startsWith(tag)))) return false;
+      if (!tagsMatch(entry.item.tags, tags)) return false;
       const ownStates = entry.positions.map((position) => stateWord(position.state));
       if (!states.every((state) => ownStates.some((own) => own.startsWith(state)))) return false;
       if (words.length === 0) return true;

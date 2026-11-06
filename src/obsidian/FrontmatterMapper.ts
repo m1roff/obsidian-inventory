@@ -1,5 +1,6 @@
 import { Item } from "../domain/Item";
 import { StockPosition } from "../domain/StockPosition";
+import { parseTagList } from "../domain/TagList";
 import { DEFAULT_STOCK_STATE_POLICY, parseStockState, StockStatePolicy } from "../domain/StockState";
 import { linkDisplayName, parseWikiLink } from "../domain/WikiLink";
 
@@ -35,7 +36,7 @@ export class FrontmatterMapper {
       this.text(fm.id),
       kindLink ? linkDisplayName(kindLink) : "",
       this.text(fm.origin),
-      this.textList(fm.tags),
+      parseTagList(fm.tags),
       coverLink ? this.links.resolvePath(coverLink.target, note.path) : null,
       note.createdAt,
       note.updatedAt,
@@ -74,16 +75,5 @@ export class FrontmatterMapper {
     return typeof raw === "string" || typeof raw === "number"
       ? String(raw).trim()
       : "";
-  }
-
-  private textList(raw: unknown): string[] {
-    if (Array.isArray(raw)) {
-      return raw
-        .filter((value): value is string => typeof value === "string")
-        .map((value) => value.trim())
-        .filter(Boolean);
-    }
-    const single = this.text(raw);
-    return single === "" ? [] : [single];
   }
 }

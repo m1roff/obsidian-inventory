@@ -44,8 +44,8 @@ describe("findEntryById", () => {
 
 describe("findPlaceById", () => {
   const places = [
-    { name: "Shelf", path: "Shelf.md", id: "LC-111-111", cover: null },
-    { name: "Box", path: "Box.md", id: "", cover: null },
+    { name: "Shelf", path: "Shelf.md", id: "LC-111-111", cover: null, tags: [] },
+    { name: "Box", path: "Box.md", id: "", cover: null, tags: [] },
   ];
 
   it("finds a place by id, and never matches an empty id", () => {

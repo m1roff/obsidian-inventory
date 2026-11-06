@@ -14,7 +14,7 @@ const lists = {
   kinds: () => ["Tool", "Consumables"],
   tags: () => ["M3"],
   locations: () => ["Shelf"],
-  places: () => [{ name: "Shelf", path: "Shelf.md", id: "LC-HH-111", cover: null }],
+  places: () => [{ name: "Shelf", path: "Shelf.md", id: "LC-HH-111", cover: null, tags: [] }],
 };
 const ids = new IdGenerator({ nextInt: () => 7 });
 

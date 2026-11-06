@@ -1,6 +1,7 @@
 import { installDevTools } from "dev-tools";
 import { addIcon, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import { AddItemService } from "./domain/AddItemService";
+import { PlaceTagService } from "./domain/PlaceTagService";
 import { AddReferenceService } from "./domain/AddReferenceService";
 import { DefaultLocation } from "./domain/DefaultLocation";
 import { RenameReferenceService } from "./domain/RenameReferenceService";
@@ -27,6 +28,8 @@ import { VaultCoverWriter } from "./obsidian/VaultCoverWriter";
 import { FileDebugLog } from "./obsidian/FileDebugLog";
 import { VaultPlaceCoverWriter } from "./obsidian/VaultPlaceCoverWriter";
 import { PhotoAttacher } from "./ui/PhotoAttacher";
+import { NewLocationDialog } from "./ui/NewLocationDialog";
+import { PlaceTagsEditor } from "./ui/PlaceTagsEditor";
 import { VaultPhotoSectionChooser } from "./ui/PhotoSectionChooser";
 import { Haptics } from "./ui/Haptics";
 import { installToggleHaptics } from "./ui/ToggleHaptics";
@@ -113,6 +116,24 @@ export default class InventoryUiPlugin extends Plugin {
     const references = new VaultReferenceLists(this.app, folders);
     const referenceWriter = new VaultReferenceWriter(this.app, folders);
     const addReference = new AddReferenceService(references, referenceWriter, idGenerator);
+    const placeTagService = new PlaceTagService(referenceWriter, references, addReference);
+    const newLocation = new NewLocationDialog(this.app, {
+      addReference,
+      tagService: placeTagService,
+      references,
+      entries: () => repository.loadEntries(),
+      searchThreshold: () => preferences.get().settings.searchThreshold,
+      placePath: (name) => `${folders.locations}/${name}.md`,
+      onAdded: () => this.refreshDashboards(),
+    });
+    const placeTags = new PlaceTagsEditor(this.app, {
+      service: placeTagService,
+      references,
+      addReference,
+      entries: () => repository.loadEntries(),
+      searchThreshold: () => preferences.get().settings.searchThreshold,
+      onSaved: () => this.refreshDashboards(),
+    });
     const placeIds = new PlaceIds(references, idGenerator, referenceWriter);
     const actions = new ItemActions(this.app, {
       stock,
@@ -216,6 +237,8 @@ export default class InventoryUiPlugin extends Plugin {
           addReference,
           defaultLocation,
           placePhotos,
+          placeTags,
+          newLocation,
           haptics,
           locationBoard: new LocationBoard(),
           preferences,

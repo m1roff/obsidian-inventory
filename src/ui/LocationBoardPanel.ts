@@ -27,6 +27,8 @@ export interface LocationBoardPanelDeps {
   /** A tap on the tile: open the location's note. */
   readonly onOpen: (tile: LocationTile) => void;
   readonly onQr: (tile: LocationTile) => void;
+  /** Opens the window that changes the tags of a location. */
+  readonly onEditTags: (tile: LocationTile) => void;
   /** Picks, replaces and takes off the tile's photo. */
   readonly photos: PhotoAttacher;
   /** The address an image file can be shown from, or null. */
@@ -59,6 +61,12 @@ export class LocationBoardPanel {
     private readonly el: HTMLElement,
     private readonly deps: LocationBoardPanelDeps,
   ) {}
+
+  /** Nothing to show (a search left no location): the block goes away until something matches again. */
+  hide(): void {
+    this.el.empty();
+    this.el.addClass("inventory-ui__hidden");
+  }
 
   render(tiles: LocationTile[], selected: string | null): void {
     this.el.empty();
@@ -258,6 +266,13 @@ export class LocationBoardPanel {
           }),
       );
     }
+    // The tags it has are right in the title, so the menu already says what they are.
+    menu.addItem((item) =>
+      item
+        .setTitle(tile.tags.length > 0 ? STRINGS.tileTags(tile.tags) : STRINGS.tileAddTags)
+        .setIcon("tags")
+        .onClick(() => this.deps.onEditTags(tile)),
+    );
     menu.addSeparator();
 
     if (!tile.pinned) {

@@ -5,4 +5,6 @@ export interface Place {
   readonly id: string;
   /** Vault path of the place's photo (its `cover`), or null. */
   readonly cover: string | null;
+  /** The tags written on the place's note: the same cloud as the items' ones. */
+  readonly tags: readonly string[];
 }

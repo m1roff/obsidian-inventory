@@ -4,9 +4,9 @@ import { itemLabelRows, labelsCsv, labelsFileName, LabelSelection, LocationLabel
 import { Place } from "../../src/domain/Place";
 import { PlaceIds } from "../../src/domain/PlaceIds";
 
-const shelf: Place = { name: "Shelf", path: "Shelf.md", id: "LC-AB-123", cover: null };
-const box: Place = { name: "Box", path: "Box.md", id: "", cover: null };
-const drawer: Place = { name: "Drawer", path: "Drawer.md", id: "", cover: null };
+const shelf: Place = { name: "Shelf", path: "Shelf.md", id: "LC-AB-123", cover: null, tags: [] };
+const box: Place = { name: "Box", path: "Box.md", id: "", cover: null, tags: [] };
+const drawer: Place = { name: "Drawer", path: "Drawer.md", id: "", cover: null, tags: [] };
 
 describe("labelsCsv", () => {
   it("writes a header and one line per label", () => {

@@ -28,7 +28,7 @@ const prefs = (patch: Partial<LocationPreferences> = {}): LocationPreferences =>
 const names = (tiles: { name: string }[]) => tiles.map((t) => t.name);
 const board = new LocationBoard();
 
-const placesOf = (names: string[]) => names.map((name) => ({ name, path: `${name}.md`, id: "", cover: null }));
+const placesOf = (names: string[]) => names.map((name) => ({ name, path: `${name}.md`, id: "", cover: null, tags: [] }));
 
 describe("LocationBoard", () => {
   it("counts the items that have units in stock there, not the units, and shows empty locations too", () => {

@@ -15,6 +15,7 @@ import {
   entriesInLocation,
   LocationBoard,
   LocationPreferencesStore,
+  tilesMatchingTags,
   withSelectedFirst,
 } from "../domain/LocationBoard";
 import {
@@ -25,6 +26,7 @@ import { InventorySorter } from "../domain/InventorySorter";
 import { findPlaceById, parseScanned } from "../domain/ItemLink";
 import { QrDecoder } from "../domain/QrCode";
 import { ReferenceLists } from "../domain/ReferenceLists";
+import { mergeTagNames } from "../domain/TagList";
 import { chooseSort, SortMode } from "../domain/SortMode";
 import {
   AddItemFormState,
@@ -35,6 +37,8 @@ import type { SettingsTab } from "./InventorySettingTab";
 import { AddItemLauncher } from "./AddItemLauncher";
 import { ItemRow } from "./ItemRow";
 import { LocationBoardPanel } from "./LocationBoardPanel";
+import { NewLocationDialog } from "./NewLocationDialog";
+import { PlaceTagsEditor } from "./PlaceTagsEditor";
 import { promptForName } from "./NamePrompt";
 import { PlaceQr } from "./PlaceQr";
 import { scanQrFromPhoto } from "./QrScanner";
@@ -66,6 +70,10 @@ export interface InventoryViewDeps {
   readonly defaultLocation: DefaultLocation;
   /** Photo of a location: picked from the tile's menu. */
   readonly placePhotos: PhotoAttacher;
+  /** The window that changes the tags of a location. */
+  readonly placeTags: PlaceTagsEditor;
+  /** The window that adds a location, with its tags. */
+  readonly newLocation: NewLocationDialog;
   readonly haptics: Haptics;
   readonly locationBoard: LocationBoard;
   readonly preferences: DashboardPreferencesStore;
@@ -224,6 +232,7 @@ export class InventoryView extends ItemView {
           void this.deps.placeQr.open(tile);
         },
         photos: this.deps.placePhotos,
+        onEditTags: (tile) => this.deps.placeTags.edit(tile),
         haptics: this.deps.haptics,
         coverUrl: (path) => this.coverUrl(path),
         showCovers: () => this.deps.preferences.get().settings.showPlaceCovers,
@@ -515,7 +524,10 @@ export class InventoryView extends ItemView {
     if (!this.listEl || this.inSetup) return;
 
     this.entries = this.deps.repository.loadEntries();
-    this.knownTags = [...new Set(this.entries.flatMap((entry) => entry.item.tags))];
+    this.knownTags = mergeTagNames(
+      this.entries.flatMap((entry) => entry.item.tags),
+      this.deps.references.places().flatMap((place) => place.tags),
+    );
     this.paint();
   }
 
@@ -541,7 +553,10 @@ export class InventoryView extends ItemView {
     if (this.locationFilter && !tiles.some((t) => t.name === this.locationFilter)) {
       this.locationFilter = null;
     }
-    this.board?.render(withSelectedFirst(tiles, this.locationFilter), this.locationFilter);
+    // Tags in the search also narrow the locations, by the tags the places have themselves.
+    const shownTiles = tilesMatchingTags(tiles, this.query, this.locationFilter);
+    if (shownTiles.length === 0 && tiles.length > 0) this.board?.hide();
+    else this.board?.render(withSelectedFirst(shownTiles, this.locationFilter), this.locationFilter);
 
     const pool = this.locationFilter
       ? entriesInLocation(all, this.locationFilter)
@@ -599,19 +614,7 @@ export class InventoryView extends ItemView {
   }
 
   private addLocation(): void {
-    promptForName(this.app, STRINGS.newLocation, (typed) => {
-      this.deps.addReference.add("location", typed).then(
-        () => this.refresh(),
-        (error: unknown) => {
-          if (error instanceof AddReferenceError) {
-            new Notice(STRINGS.referenceErrors[error.code]);
-            return;
-          }
-          console.error(error);
-          new Notice(STRINGS.unexpectedError);
-        },
-      );
-    });
+    this.deps.newLocation.open();
   }
 
   /**
