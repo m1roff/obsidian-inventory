@@ -1,3 +1,4 @@
+import { installDevTools } from "dev-tools";
 import { addIcon, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import { AddItemService } from "./domain/AddItemService";
 import { AddReferenceService } from "./domain/AddReferenceService";
@@ -15,11 +16,6 @@ import { StateUsage } from "./domain/StateUsage";
 import { StockService } from "./domain/StockService";
 import { CryptoRandomSource } from "./obsidian/CryptoRandomSource";
 import { PreferenceFolders } from "./obsidian/PreferenceFolders";
-import { addDevVaultCommands } from "./dev/DevVaultCommands";
-import { addHapticsProbe } from "./dev/HapticsProbe";
-import { addHoldLab } from "./dev/HoldLab";
-import { addPatternLab } from "./dev/PatternLab";
-import { SampleDataSeeder } from "./dev/SampleDataSeeder";
 import { ExplorerShortcut } from "./ui/ExplorerShortcut";
 import { StructureApplier } from "./domain/structure/StructureApplier";
 import { SetupService } from "./domain/structure/SetupService";
@@ -327,27 +323,7 @@ export default class InventoryUiPlugin extends Plugin {
     });
 
     if (__DEV__) {
-      addDevVaultCommands(this);
-      addHapticsProbe(this);
-      addHoldLab(this);
-      addPatternLab(this);
-      const seeder = new SampleDataSeeder(addReference, addItem);
-      this.addCommand({
-        id: "dev-add-sample-data",
-        name: "Dev: add sample data (kinds, locations, items)",
-        callback: () => {
-          seeder.seed().then(
-            (result) => {
-              new Notice(`Sample data: added ${result.added}, already there ${result.skipped}`);
-              this.refreshDashboards();
-            },
-            (error: unknown) => {
-              console.error(error);
-              new Notice("Could not add sample data. Is the structure set up? See the console.");
-            },
-          );
-        },
-      });
+      installDevTools({ plugin: this, addReference, addItem, refreshDashboards: () => this.refreshDashboards() });
     }
   }
 

@@ -5,7 +5,7 @@ import { describeError, DebugLog, NO_DEBUG_LOG } from "../domain/DebugLog";
 interface WeakReference<T extends object> {
   deref(): T | undefined;
 }
-const WeakRefCtor = (globalThis as unknown as { WeakRef: new <T extends object>(target: T) => WeakReference<T> })
+const WeakRefCtor = (window as unknown as { WeakRef: new <T extends object>(target: T) => WeakReference<T> })
   .WeakRef;
 
 const MAX_SIDE = 1600;

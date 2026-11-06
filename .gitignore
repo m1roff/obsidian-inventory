@@ -4,3 +4,6 @@ main.js
 *.js.map
 data.json
 .claude/
+# The owner's development tools and the compose file that mounts them: not part of the project
+src/dev/
+docker-compose.override.yml

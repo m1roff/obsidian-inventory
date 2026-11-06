@@ -1,13 +1,29 @@
 import esbuild from "esbuild";
 import chokidar from "chokidar";
+import { existsSync } from "node:fs";
 import { builtinModules } from "node:module";
+import { resolve } from "node:path";
 
 const mode = process.argv[2];
 const prod = mode === "production";
 // `dev-once` builds a development bundle one time and exits (used for the phone).
 const once = mode === "dev-once";
 
+// `dev-tools` is the owner's set of development commands. They are not part of this repository:
+// a development build picks them up from `src/dev` when that folder is mounted there, and every
+// other build (production, or from this repository alone) gets an empty stand-in.
+const devTools = {
+  name: "dev-tools",
+  setup(build) {
+    build.onResolve({ filter: /^dev-tools$/ }, () => {
+      const real = resolve("src/dev/index.ts");
+      return { path: !prod && existsSync(real) ? real : resolve("src/devToolsStub.ts") };
+    });
+  },
+};
+
 const ctx = await esbuild.context({
+  plugins: [devTools],
   entryPoints: ["src/main.ts"],
   bundle: true,
   format: "cjs",
