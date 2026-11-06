@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendToSection } from "../../src/domain/MarkdownSection";
+import { appendToEnd, appendToSection } from "../../src/domain/MarkdownSection";
 
 const H = "## Real photo";
 const card = `---\nid: X\n---\n\n## Stock\n\n![[Stock positions.base#Current Product]]\n\n\n# Extra description\n\n\n${H}\n\n## Item card photos\n`;
@@ -23,5 +23,19 @@ describe("appendToSection", () => {
 
   it("creates the section when it is missing", () => {
     expect(appendToSection("# T\ntext\n", H, "![[a.jpg]]")).toBe(`# T\ntext\n\n${H}\n\n![[a.jpg]]\n`);
+  });
+});
+
+describe("appendToEnd", () => {
+  it("adds the line after the last text with one blank line between", () => {
+    expect(appendToEnd("# T\ntext\n\n\n", "![[a.jpg]]")).toBe("# T\ntext\n\n![[a.jpg]]\n");
+  });
+
+  it("keeps earlier embeds and appends below them", () => {
+    expect(appendToEnd("text\n\n![[a.jpg]]\n", "![[b.jpg]]")).toBe("text\n\n![[a.jpg]]\n\n![[b.jpg]]\n");
+  });
+
+  it("works on an empty note", () => {
+    expect(appendToEnd("", "![[a.jpg]]")).toBe("![[a.jpg]]\n");
   });
 });

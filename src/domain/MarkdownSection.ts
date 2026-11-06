@@ -38,3 +38,9 @@ export function appendToSection(
     ...after,
   ].join("\n");
 }
+
+/** Appends a line at the very end of the note, separated from the text above by a blank line. */
+export function appendToEnd(content: string, line: string): string {
+  const body = content.replace(/\s+$/, "");
+  return body === "" ? `${line}\n` : `${body}\n\n${line}\n`;
+}
