@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { IdGenerator } from "../../src/domain/IdGenerator";
-import { labelsCsv, labelsFileName, LabelSelection, LocationLabelExport } from "../../src/domain/LabelExport";
+import { itemLabelRows, labelsCsv, labelsFileName, LabelSelection, LocationLabelExport } from "../../src/domain/LabelExport";
 import { Place } from "../../src/domain/Place";
 import { PlaceIds } from "../../src/domain/PlaceIds";
 
@@ -21,6 +21,14 @@ describe("labelsCsv", () => {
 
   it("is just the header for no labels", () => {
     expect(labelsCsv([])).toBe("id,name,link\r\n");
+  });
+});
+
+describe("itemLabelRows", () => {
+  it("builds the link that opens the item card", () => {
+    expect(itemLabelRows([{ id: "PY-ND-269", name: "New r" }], "My vault")).toEqual([
+      { id: "PY-ND-269", name: "New r", link: "obsidian://inventory-ui?vault=My%20vault&id=PY-ND-269" },
+    ]);
   });
 });
 

@@ -35,6 +35,7 @@ import {
   parseFormState,
 } from "./AddItemModal";
 import { ItemActions } from "./ItemActions";
+import type { SettingsTab } from "./InventorySettingTab";
 import { LocationBoardPanel } from "./LocationBoardPanel";
 import { promptForName } from "./NamePrompt";
 import { PlaceQr } from "./PlaceQr";
@@ -71,8 +72,8 @@ export interface InventoryViewDeps {
   readonly preferences: DashboardPreferencesStore;
   readonly qrDecoder: QrDecoder;
   readonly placeQr: PlaceQr;
-  /** Opens the plugin settings on the Locations tab. */
-  readonly openLocationSettings: () => void;
+  /** Opens the plugin settings on the given tab. */
+  readonly openSettings: (tab: SettingsTab) => void;
   readonly setup: SetupService;
   readonly states: () => StockStatePolicy;
   /** Called when the dashboard goes away, with what it was showing. */
@@ -223,7 +224,7 @@ export class InventoryView extends ItemView {
           void this.openCard(tile.path);
         },
         onAddLocation: () => this.addLocation(),
-        onOpenSettings: () => this.deps.openLocationSettings(),
+        onOpenSettings: () => this.deps.openSettings("locations"),
         onQr: (tile) => {
           void this.deps.placeQr.open(tile);
         },
@@ -312,7 +313,8 @@ export class InventoryView extends ItemView {
    * on the same row, so it stays visible when the list is folded.
    */
   private renderItemsHeader(parent: HTMLElement): void {
-    const toggle = parent.createEl("button", {
+    const lead = parent.createDiv({ cls: "inventory-ui__board-head" });
+    const toggle = lead.createEl("button", {
       cls: "inventory-ui__board-toggle",
     });
     this.itemsIconEl = toggle.createSpan();
@@ -321,6 +323,14 @@ export class InventoryView extends ItemView {
     toggle.addEventListener("click", () => {
       this.setItemsExpanded(!this.deps.preferences.get().itemsExpanded);
     });
+
+    // The settings of items (label export), one tap away.
+    const settings = lead.createEl("button", {
+      cls: "inventory-ui__board-settings",
+      attr: { "aria-label": STRINGS.itemsSettings },
+    });
+    setIcon(settings, "settings");
+    settings.addEventListener("click", () => this.deps.openSettings("items"));
 
     this.renderSortSwitch(parent);
   }

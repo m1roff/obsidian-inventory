@@ -52,7 +52,7 @@ import { INVENTORY_ICON_ID, inventoryIconMarkup } from "./ui/InventoryIcon";
 import { InventoryLogo, PlaceLogo } from "./ui/QrLogo";
 import { QrLabels } from "./ui/QrLabels";
 import { LocationLabelExport } from "./domain/LabelExport";
-import { InventorySettingTab } from "./ui/InventorySettingTab";
+import { InventorySettingTab, SettingsTab } from "./ui/InventorySettingTab";
 import { ItemActions } from "./ui/ItemActions";
 import { STRINGS } from "./ui/strings";
 import { INVENTORY_VIEW_TYPE, InventoryView } from "./ui/InventoryView";
@@ -165,8 +165,8 @@ export default class InventoryUiPlugin extends Plugin {
 
     // The settings tab is made below; the views reach it only when a button is pressed.
     let settingTab: InventorySettingTab | null = null;
-    const openLocationSettings = (): void => {
-      settingTab?.showTab("locations");
+    const openSettings = (tab: SettingsTab): void => {
+      settingTab?.showTab(tab);
       this.app.setting?.open();
       this.app.setting?.openTabById(this.manifest.id);
     };
@@ -191,7 +191,7 @@ export default class InventoryUiPlugin extends Plugin {
           qrDecoder,
           placeQr,
           setup,
-          openLocationSettings,
+          openSettings,
           states: () => stockStatePolicy(preferences.get()),
           rememberFilter: (filter) => {
             this.lastFilter = filter;
@@ -218,6 +218,7 @@ export default class InventoryUiPlugin extends Plugin {
         references,
         defaultLocation,
         locationExport: new LocationLabelExport(placeIds),
+        entries: () => repository.loadEntries(),
         icons: { itemLogo, placeLogo },
         qrSample: (style) =>
           renderQrLabel(

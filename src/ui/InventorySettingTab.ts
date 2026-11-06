@@ -10,6 +10,9 @@ import {
 } from "../domain/DashboardPreferences";
 import { AddReferenceError } from "../domain/AddReferenceService";
 import { DefaultLocation } from "../domain/DefaultLocation";
+import { InventoryEntry } from "../domain/InventoryEntry";
+import { Item } from "../domain/Item";
+import { Place } from "../domain/Place";
 import { LocationLabelExport } from "../domain/LabelExport";
 import { PlaceIds } from "../domain/PlaceIds";
 import { QR_STYLES, QrStyle } from "../domain/QrStyle";
@@ -19,12 +22,13 @@ import { isBuiltInState, StockStateError, StockStatePolicy } from "../domain/Sto
 import { isValidBaseFolder, normalizeBaseFolder } from "../domain/structure/StructureLayout";
 import { confirmAction } from "./ConfirmModal";
 import { IconExportDeps, IconExportPanel } from "./IconExportPanel";
-import { LocationExportPanel } from "./LocationExportPanel";
+import { itemExportPanel, locationExportPanel } from "./LabelExportPanels";
+import { LabelExportPanel } from "./LabelExportPanel";
 import { promptForName } from "./NamePrompt";
 import { SelectField } from "./SelectField";
 import { STRINGS } from "./strings";
 
-export const SETTINGS_TABS = ["general", "dashboard", "locations", "states", "mobile", "structure", "danger"] as const;
+export const SETTINGS_TABS = ["general", "dashboard", "locations", "items", "states", "mobile", "structure", "danger"] as const;
 export type SettingsTab = (typeof SETTINGS_TABS)[number];
 
 /** Saving and redrawing happen once the slider has stopped moving. */
@@ -45,6 +49,8 @@ export interface InventorySettingTabDeps {
   readonly defaultLocation: DefaultLocation;
   /** Builds the label table of locations for export. */
   readonly locationExport: LocationLabelExport;
+  /** Every item with its positions, read from the vault (only when a block that needs it opens). */
+  readonly entries: () => readonly InventoryEntry[];
   /** The QR emblems that can be shared as PNG files. */
   readonly icons: IconExportDeps;
   /** Draws a sample QR code in the given look, to choose from. */
@@ -59,7 +65,8 @@ export class InventorySettingTab extends PluginSettingTab {
   private modulesEl: HTMLElement | null = null;
   /** Read once when the tab opens: reading the vault on every tick would be wasteful. */
   private usage: StateUsage | null = null;
-  private readonly exportPanel: LocationExportPanel;
+  private readonly exportPanel: LabelExportPanel<Place>;
+  private readonly itemsPanel: LabelExportPanel<Item>;
   private readonly iconPanel: IconExportPanel;
 
   constructor(
@@ -68,10 +75,17 @@ export class InventorySettingTab extends PluginSettingTab {
     private readonly deps: InventorySettingTabDeps,
   ) {
     super(app, plugin);
-    this.exportPanel = new LocationExportPanel({
+    this.exportPanel = locationExportPanel({
       places: () => deps.references.places(),
       vaultName: () => app.vault.getName(),
       exporter: deps.locationExport,
+    });
+    this.itemsPanel = itemExportPanel({
+      app,
+      entries: () => deps.entries(),
+      locations: () => deps.references.locations(),
+      vaultName: () => app.vault.getName(),
+      searchThreshold: () => deps.preferences.get().settings.searchThreshold,
     });
     this.iconPanel = new IconExportPanel(deps.icons);
   }
@@ -93,6 +107,7 @@ export class InventorySettingTab extends PluginSettingTab {
       case "general": this.renderGeneral(page, settings); break;
       case "dashboard": this.renderDashboard(page, settings); break;
       case "locations": this.renderLocations(page, settings); break;
+      case "items": this.itemsPanel.render(page); break;
       case "states": this.renderStatesPage(page); break;
       case "mobile": this.renderMobile(page, settings); break;
       case "structure": this.renderStructure(page, settings); break;

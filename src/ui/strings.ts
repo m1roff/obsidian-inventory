@@ -59,6 +59,7 @@ export const STRINGS = {
     general: "General",
     dashboard: "Dashboard",
     locations: "Locations",
+    items: "Items",
     states: "Stock states",
     mobile: "Mobile",
     structure: "Structure",
@@ -133,6 +134,15 @@ export const STRINGS = {
   qrCsvDesc:
     "A CSV file with this label: id, name and the link its code carries. A label printer program (for example P-touch Editor) can fill a template from it.",
   qrCsvButton: "Share CSV",
+  itemsSettings: "Settings of items",
+  exportItemsName: "Export labels of items",
+  exportItemsDesc:
+    "Makes a table (a CSV file) of the items you tick below: id, name and the link their QR code carries. A label printer program (for example P-touch Editor) can read it, so you set the label up once and it fills in every label itself. Items without an id are not listed, a label needs an id. On a phone the file goes through the share sheet, on a computer it is downloaded.",
+  exportItemsLocation: "Location",
+  exportItemsLocationDesc: "Only items that have units in stock in this location.",
+  exportAllLocations: "All locations",
+  exportNoItems: "No items to export here.",
+  exportItemsSkipped: (count: number): string => `${count} item(s) without an id are left out.`,
   boardSettings: "Settings of locations",
   iconsName: "Icons",
   iconsDesc:
