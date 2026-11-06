@@ -39,7 +39,10 @@ import { VaultReferenceLists } from "./obsidian/VaultReferenceLists";
 import { VaultReferenceWriter } from "./obsidian/VaultReferenceWriter";
 import { CardToolbar } from "./ui/CardToolbar";
 import { ItemBarSource } from "./ui/ItemBarSource";
+import { AddItemLauncher } from "./ui/AddItemLauncher";
+import { ItemRow } from "./ui/ItemRow";
 import { PlaceBarSource } from "./ui/PlaceBarSource";
+import { PlaceItemsPanel } from "./ui/PlaceItemsPanel";
 import { PlaceQr } from "./ui/PlaceQr";
 import { findEntryById, findPlaceById, ITEM_LINK_ACTION } from "./domain/ItemLink";
 import { PlaceIds } from "./domain/PlaceIds";
@@ -140,6 +143,16 @@ export default class InventoryUiPlugin extends Plugin {
     });
 
     const placeQr = new PlaceQr(placeIds, qrLabels);
+    const addItemLauncher = new AddItemLauncher(this.app, {
+      service: addItem,
+      references,
+      addReference,
+      preferences,
+      defaultLocation,
+      haptics,
+      repository,
+      similar: new SimilarItemFinder(),
+    });
 
     // A scanned label (or a link) opens its item by id, wherever the note lives.
     this.registerObsidianProtocolHandler(ITEM_LINK_ACTION, (params) => {
@@ -179,8 +192,7 @@ export default class InventoryUiPlugin extends Plugin {
           search: new InventorySearch(),
           sorter: new InventorySorter(),
           references,
-          addItem,
-          similar: new SimilarItemFinder(),
+          addItemLauncher,
           actions,
           addReference,
           defaultLocation,
@@ -236,10 +248,40 @@ export default class InventoryUiPlugin extends Plugin {
     });
     this.addSettingTab(settingTab);
 
+    // The rows of the list in a place's note are the dashboard's rows: one class draws both.
+    const openCard = (path: string): void => {
+      void this.app.workspace.openLinkText(path, "", false);
+    };
+    const placeItems = new PlaceItemsPanel({
+      repository,
+      search: new InventorySearch(),
+      sorter: new InventorySorter(),
+      preferences,
+      onAdd: (place) =>
+        addItemLauncher.open({
+          fixedLocation: place.name,
+          onOpenCard: (path) => openCard(path),
+          // Added from the place's own note: stay in it, the new item shows up in its list.
+          onAdded: (added) => {
+            new Notice(STRINGS.added(added.name, added.id));
+          },
+        }),
+      row: new ItemRow({
+        states: () => stockStatePolicy(preferences.get()),
+        actions,
+        openCard,
+        coverUrl: (path) => {
+          const file = path === null ? null : this.app.vault.getFileByPath(path);
+          return file ? this.app.vault.getResourcePath(file) : null;
+        },
+        onChanged: () => undefined,
+      }),
+    });
+
     new CardToolbar(this, {
       sources: [
         new ItemBarSource(repository, actions, qrLabels, () => folders.items),
-        new PlaceBarSource(references, placeQr, () => folders.locations),
+        new PlaceBarSource(references, placeQr, () => folders.locations, placeItems),
       ],
       openInventory: (fromLeaf) => {
         void this.openInventory(fromLeaf);

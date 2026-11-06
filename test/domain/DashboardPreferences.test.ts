@@ -5,6 +5,8 @@ import {
   parseDashboardPreferences,
   parseBaseFolder,
   parseFoldedCount,
+  parsePlaceItemsShown,
+  placeItemLimit,
   parseSearchThreshold,
   visibleWhenFolded,
 } from "../../src/domain/DashboardPreferences";
@@ -30,6 +32,21 @@ describe("parseDashboardPreferences", () => {
   });
 });
 
+describe("place items shown", () => {
+  it("keeps whole numbers in range and falls back to 10", () => {
+    expect(parsePlaceItemsShown(5)).toBe(5);
+    expect(parsePlaceItemsShown(0)).toBe(1);
+    expect(parsePlaceItemsShown(99)).toBe(31);
+    expect(parsePlaceItemsShown("x")).toBe(10);
+    expect(parsePlaceItemsShown(undefined)).toBe(10);
+  });
+
+  it("treats the end of the slider as no limit", () => {
+    expect(placeItemLimit(10)).toBe(10);
+    expect(placeItemLimit(31)).toBe(Number.POSITIVE_INFINITY);
+  });
+});
+
 describe("settings", () => {
   it("limits the folded counts to whole numbers within range", () => {
     expect(parseFoldedCount(5)).toBe(5);
@@ -50,7 +67,7 @@ describe("settings", () => {
 
   it("reads the settings and falls back to 3 for missing ones", () => {
     const parsed = parseDashboardPreferences({ settings: { foldedItemCount: 7 } });
-    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light" });
+    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10 });
   });
 
   it("reads the remembered item sort and ignores nonsense", () => {
@@ -60,7 +77,7 @@ describe("settings", () => {
 
   it("has factory defaults that a reset can restore", () => {
     expect(DEFAULT_DASHBOARD_PREFERENCES).toEqual({
-      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light" },
+      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10 },
       locations: { pinned: [], sort: "alpha", reversed: false, expanded: false },
       itemsExpanded: false,
       itemsSort: "created",

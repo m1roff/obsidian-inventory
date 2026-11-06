@@ -134,6 +134,14 @@ export const STRINGS = {
   qrCsvDesc:
     "A CSV file with this label: id, name and the link its code carries. A label printer program (for example P-touch Editor) can fill a template from it.",
   qrCsvButton: "Share CSV",
+  placeItemsName: "Items shown in a location note",
+  placeItemsDesc:
+    "Open the note of a location and you see the items stored there. This is how many of them show at first, the rest wait behind \"Show all\". Drag the slider to the very end to show all of them at once.",
+  fieldLocationFixed: "This item is added to the place whose note you came from.",
+  placeItemsTitle: "Items here",
+  placeItemsSearch: "Search in this location",
+  placeItemsEmpty: "Nothing is stored here.",
+  placeItemsNoMatch: "Nothing found.",
   itemsSettings: "Settings of items",
   exportItemsName: "Export labels of items",
   exportItemsDesc:
@@ -185,8 +193,8 @@ export const STRINGS = {
   // Locations board
   boardTitle: "Locations",
   boardSortAlpha: "A-Z",
-  boardSortAdded: "Added",
-  boardSortUpdated: "Updated",
+  boardSortAdded: "Items added",
+  boardSortUpdated: "Items changed",
   boardExpand: "Show all locations",
   boardCollapse: "Show fewer locations",
   pin: "Pin to top",

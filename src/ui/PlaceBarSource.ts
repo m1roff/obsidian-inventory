@@ -1,16 +1,18 @@
 import { Place } from "../domain/Place";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { isInFolder } from "../obsidian/InventoryFolders";
-import { BarButton, BarSource } from "./CardBar";
+import { BarButton, BarPanel, BarSource } from "./CardBar";
+import { PlaceItemsPanel } from "./PlaceItemsPanel";
 import { PlaceQr } from "./PlaceQr";
 import { STRINGS } from "./strings";
 
-/** The bar of a place's note: its QR label. */
+/** A place's note: the bar has its QR label, and under it comes the list of items stored there. */
 export class PlaceBarSource implements BarSource {
   constructor(
     private readonly references: ReferenceLists,
     private readonly placeQr: PlaceQr,
     private readonly placesFolder: () => string,
+    private readonly items: PlaceItemsPanel,
   ) {}
 
   buttonsFor(path: string): BarButton[] | null {
@@ -30,6 +32,14 @@ export class PlaceBarSource implements BarSource {
         },
       },
     ];
+  }
+
+  panelFor(path: string): BarPanel | null {
+    if (!isInFolder(path, this.placesFolder())) return null;
+    const place = this.placeAt(path);
+    if (!place) return null;
+    // Read afresh on each draw: the place may have been renamed since.
+    return { render: (host) => this.items.render(host, this.placeAt(path) ?? place) };
   }
 
   private placeAt(path: string): Place | undefined {

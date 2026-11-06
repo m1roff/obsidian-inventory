@@ -11,6 +11,11 @@ export const FOLDED_COUNT_MIN = 1;
 export const FOLDED_COUNT_MAX = 20;
 export const DEFAULT_FOLDED_COUNT = 3;
 
+/** Items a place's note shows before "Show all"; the last slider position means all of them. */
+export const PLACE_ITEMS_MIN = 1;
+export const PLACE_ITEMS_ALL = 31;
+export const DEFAULT_PLACE_ITEMS = 10;
+
 export const SEARCH_THRESHOLD_MIN = 0;
 export const SEARCH_THRESHOLD_MAX = 20;
 export const DEFAULT_SEARCH_THRESHOLD = 5;
@@ -39,6 +44,8 @@ export interface DashboardSettings {
   readonly haptics: boolean;
   /** The look of QR labels by their ground: light (black code on white, the default) or dark. */
   readonly qrStyle: QrStyle;
+  /** How many items a place's note shows before "Show all"; `PLACE_ITEMS_ALL` shows every one. */
+  readonly placeItemsShown: number;
 }
 
 /** Settings plus what the dashboard remembers between sessions. */
@@ -66,6 +73,7 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
     showPlaceCovers: true,
     haptics: true,
     qrStyle: DEFAULT_QR_STYLE,
+    placeItemsShown: DEFAULT_PLACE_ITEMS,
   },
   locations: parseLocationPreferences(null),
   itemsExpanded: false,
@@ -77,6 +85,17 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
 export function parseFoldedCount(raw: unknown): number {
   if (typeof raw !== "number" || !Number.isFinite(raw)) return DEFAULT_FOLDED_COUNT;
   return Math.min(FOLDED_COUNT_MAX, Math.max(FOLDED_COUNT_MIN, Math.round(raw)));
+}
+
+/** A whole number from 1 to the "all" position; anything else gives the default. */
+export function parsePlaceItemsShown(raw: unknown): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) return DEFAULT_PLACE_ITEMS;
+  return Math.min(PLACE_ITEMS_ALL, Math.max(PLACE_ITEMS_MIN, Math.round(raw)));
+}
+
+/** The slider value as a row count: the end of the slider means no limit. */
+export function placeItemLimit(shown: number): number {
+  return shown >= PLACE_ITEMS_ALL ? Number.POSITIVE_INFINITY : shown;
 }
 
 /** A whole number within the allowed range; anything else gives the default. */
@@ -121,6 +140,7 @@ export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
       showPlaceCovers: own.showPlaceCovers !== false,
       haptics: own.haptics !== false,
       qrStyle: parseQrStyle(own.qrStyle),
+      placeItemsShown: parsePlaceItemsShown(own.placeItemsShown),
     },
     locations: parseLocationPreferences(locations),
     itemsExpanded: itemsExpanded === true,

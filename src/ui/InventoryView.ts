@@ -6,7 +6,6 @@ import {
   ViewStateResult,
   WorkspaceLeaf,
 } from "obsidian";
-import { AddItemService } from "../domain/AddItemService";
 import { AddReferenceError, AddReferenceService } from "../domain/AddReferenceService";
 import { DefaultLocation } from "../domain/DefaultLocation";
 import { InventoryEntry } from "../domain/InventoryEntry";
@@ -26,16 +25,15 @@ import { InventorySorter } from "../domain/InventorySorter";
 import { findPlaceById, parseScanned } from "../domain/ItemLink";
 import { QrDecoder } from "../domain/QrCode";
 import { ReferenceLists } from "../domain/ReferenceLists";
-import { SimilarItemFinder } from "../domain/SimilarItemFinder";
 import { chooseSort, SortMode } from "../domain/SortMode";
 import {
-  AddItemDefaults,
   AddItemFormState,
-  AddItemModal,
   parseFormState,
 } from "./AddItemModal";
 import { ItemActions } from "./ItemActions";
 import type { SettingsTab } from "./InventorySettingTab";
+import { AddItemLauncher } from "./AddItemLauncher";
+import { ItemRow } from "./ItemRow";
 import { LocationBoardPanel } from "./LocationBoardPanel";
 import { promptForName } from "./NamePrompt";
 import { PlaceQr } from "./PlaceQr";
@@ -59,8 +57,8 @@ export interface InventoryViewDeps {
   readonly search: InventorySearch;
   readonly sorter: InventorySorter;
   readonly references: ReferenceLists;
-  readonly addItem: AddItemService;
-  readonly similar: SimilarItemFinder;
+  /** Opens the Add item form (shared with the list in a place's note). */
+  readonly addItemLauncher: AddItemLauncher;
   readonly actions: ItemActions;
   readonly addReference: AddReferenceService;
   /** The location a new item goes to by default (and its upkeep). */
@@ -88,6 +86,9 @@ export class InventoryView extends ItemView {
   private itemsIconEl: HTMLElement | null = null;
   private itemsCountEl: HTMLElement | null = null;
   private sortButtons = new Map<SortMode, HTMLElement>();
+  /** What the last read of the vault found; sort and fold changes redraw from it. */
+  private entries: InventoryEntry[] = [];
+  private readonly rows: ItemRow;
   private searchEl: HTMLInputElement | null = null;
   private listEl: HTMLElement | null = null;
   private scrollEl: HTMLElement | null = null;
@@ -101,13 +102,21 @@ export class InventoryView extends ItemView {
   /** Something changed while the dashboard was not on screen: redraw when it comes back. */
   private staleWhileHidden = false;
   private addDraft: AddItemFormState | null = null;
-  private lastUsed: AddItemDefaults = { kind: "", location: "" };
 
   constructor(
     leaf: WorkspaceLeaf,
     private readonly deps: InventoryViewDeps,
   ) {
     super(leaf);
+    this.rows = new ItemRow({
+      states: () => deps.states(),
+      actions: deps.actions,
+      openCard: (path) => {
+        void this.openCard(path);
+      },
+      coverUrl: (path) => this.coverUrl(path),
+      onChanged: () => this.scheduleRefresh(),
+    });
   }
 
   getViewType(): string {
@@ -233,7 +242,7 @@ export class InventoryView extends ItemView {
         coverUrl: (path) => this.coverUrl(path),
         showCovers: () => this.deps.preferences.get().settings.showPlaceCovers,
         foldedCount: () => this.deps.preferences.get().settings.foldedLocationCount,
-        onPreferencesChanged: () => this.renderList(),
+        onPreferencesChanged: () => this.repaint(),
       },
     );
     this.renderItemsHeader(scroll.createDiv({ cls: "inventory-ui__info" }));
@@ -396,7 +405,7 @@ export class InventoryView extends ItemView {
   private setItemsExpanded(expanded: boolean): void {
     const current = this.deps.preferences.get();
     this.deps.preferences.set({ ...current, itemsExpanded: expanded });
-    this.renderList();
+    this.repaint();
   }
 
   private scrollToTop(smooth: boolean): void {
@@ -465,7 +474,7 @@ export class InventoryView extends ItemView {
           itemsSortReversed: next.reversed,
         });
         this.updateSortButtons();
-        this.renderList();
+        this.repaint();
       });
       this.sortButtons.set(mode, button);
     }
@@ -514,12 +523,28 @@ export class InventoryView extends ItemView {
     this.searchClearEl?.toggleClass("is-visible", (this.searchEl?.value ?? "") !== "");
   }
 
+  /** Reads the inventory and draws everything. For changes of the data (notes changed, search). */
   private renderList(): void {
     this.syncSearchClear();
     if (!this.listEl || this.inSetup) return;
 
-    const all = this.deps.repository.loadEntries();
-    this.knownTags = [...new Set(all.flatMap((entry) => entry.item.tags))];
+    this.entries = this.deps.repository.loadEntries();
+    this.knownTags = [...new Set(this.entries.flatMap((entry) => entry.item.tags))];
+    this.paint();
+  }
+
+  /**
+   * Draws everything again from what was read last, without reading the vault. For changes
+   * of the look only (sort, fold, pin): the data is the same, only the order or the number of rows changes.
+   */
+  private repaint(): void {
+    if (!this.listEl || this.inSetup) return;
+    this.paint();
+  }
+
+  private paint(): void {
+    if (!this.listEl) return;
+    const all = this.entries;
 
     const tiles = this.deps.locationBoard.tiles(
       this.deps.references.places(),
@@ -561,7 +586,7 @@ export class InventoryView extends ItemView {
     }
     const firstScreen = settings.foldedItemCount;
     const visible = visibleWhenFolded(shown, expanded, firstScreen);
-    for (const entry of visible.slice(0, firstScreen)) this.renderRow(this.listEl, entry);
+    for (const entry of visible.slice(0, firstScreen)) this.rows.render(this.listEl, entry);
 
     if (shown.length <= firstScreen) return;
     if (!expanded) {
@@ -573,7 +598,7 @@ export class InventoryView extends ItemView {
     // screen. A sticky bar cannot rise above its block, so it only shows once the owner has
     // scrolled past the first screen, and never covers the top of the list.
     const rest = this.listEl.createDiv({ cls: "inventory-ui__list-rest" });
-    for (const entry of visible.slice(firstScreen)) this.renderRow(rest, entry);
+    for (const entry of visible.slice(firstScreen)) this.rows.render(rest, entry);
     this.renderListFooter(rest, shown.length, true);
   }
 
@@ -600,111 +625,6 @@ export class InventoryView extends ItemView {
           new Notice(STRINGS.unexpectedError);
         },
       );
-    });
-  }
-
-  private renderRow(parent: HTMLElement, entry: InventoryEntry): void {
-    const { item } = entry;
-    const quantity = entry.availableQuantity();
-
-    const row = parent.createDiv({ cls: "inventory-ui__row" });
-    const top = row.createDiv({ cls: "inventory-ui__row-top" });
-
-    this.renderCover(top, entry);
-
-    const main = top.createEl("button", {
-      cls: "inventory-ui__row-main",
-      attr: { "aria-label": `${STRINGS.openCard}: ${item.name}` },
-    });
-    main.addEventListener("click", () => {
-      void this.openCard(item.path);
-    });
-
-    const text = main.createDiv({ cls: "inventory-ui__text" });
-    text.createDiv({ cls: "inventory-ui__name", text: item.name });
-
-    const meta = text.createDiv({ cls: "inventory-ui__meta" });
-    if (item.id) meta.createSpan({ cls: "inventory-ui__id", text: item.id });
-    if (item.kind) meta.createSpan({ text: item.kind });
-    if (item.tags.length > 0) {
-      meta.createSpan({
-        cls: "inventory-ui__tags",
-        text: item.tags.map((tag) => `#${tag}`).join(" "),
-      });
-    }
-
-    const places = entry
-      .places()
-      .map((place) => `${place.location} × ${place.quantity}`)
-      .join(", ");
-    text.createDiv({
-      cls: "inventory-ui__places",
-      text: places || STRINGS.outOfStock,
-    });
-    // Units that are somewhere but not counted (defective, ...): next to the number, not forgotten.
-    const uncounted = entry.uncountedByState(this.deps.states());
-    if (uncounted.length > 0) {
-      text.createDiv({
-        cls: "inventory-ui__uncounted",
-        text: STRINGS.uncounted(
-          uncounted.map((u) => `${u.quantity} ${STRINGS.stateLabel(u.state).toLowerCase()}`).join(", "),
-        ),
-      });
-    }
-
-    main.createDiv({
-      cls:
-        quantity > 0
-          ? "inventory-ui__qty"
-          : "inventory-ui__qty inventory-ui__qty--zero",
-      text: String(quantity),
-    });
-
-    const actionsEl = row.createDiv({ cls: "inventory-ui__actions" });
-    for (const action of this.deps.actions.all()) {
-      const button = actionsEl.createEl("button", {
-        cls: "inventory-ui__action",
-        text: action.label,
-      });
-      button.disabled = !action.isEnabled(entry);
-      button.addEventListener("click", () => {
-        void action.run(entry);
-      });
-    }
-  }
-
-  /** The photo, or a tap target that adds one. */
-  private renderCover(parent: HTMLElement, entry: InventoryEntry): void {
-    const { item } = entry;
-    const coverUrl = this.coverUrl(item.coverPath);
-    const cover = parent.createEl("button", {
-      cls: "inventory-ui__cover",
-      attr: {
-        "aria-label": coverUrl
-          ? `${STRINGS.openCard}: ${item.name}`
-          : `${STRINGS.addPhoto}: ${item.name}`,
-      },
-    });
-
-    if (coverUrl) {
-      cover.createEl("img", { attr: { src: coverUrl, alt: "" } });
-      cover.addEventListener("click", () => {
-        void this.openCard(item.path);
-      });
-      return;
-    }
-
-    cover.addClass("inventory-ui__cover--empty");
-    setIcon(cover, "camera");
-    cover.addEventListener("click", () => {
-      void this.deps.actions.addPhoto(entry, (busy) => {
-        if (busy) {
-          cover.addClass("inventory-ui__cover--busy");
-          setIcon(cover, "loader");
-        } else {
-          this.scheduleRefresh();
-        }
-      });
     });
   }
 
@@ -752,36 +672,17 @@ export class InventoryView extends ItemView {
   }
 
   private openAddModal(initial?: AddItemFormState): void {
-    // A default location always exists: make sure of it before the form needs it.
-    void this.deps.defaultLocation
-      .ensure()
-      .catch((error: unknown) => console.error(error))
-      .then(() => this.showAddModal(initial));
-  }
-
-  private showAddModal(initial?: AddItemFormState): void {
-    new AddItemModal(this.app, {
-      service: this.deps.addItem,
-      references: this.deps.references,
-      addReference: this.deps.addReference,
-      searchThreshold: () => this.deps.preferences.get().settings.searchThreshold,
-      filament: () => this.deps.preferences.get().settings.filament,
-      defaults: this.lastUsed,
-      defaultLocation: () => this.deps.defaultLocation.current(),
-      haptics: this.deps.haptics,
+    this.deps.addItemLauncher.open({
       initial,
-      entries: this.deps.repository.loadEntries(),
-      similar: this.deps.similar,
       onOpenCard: (path, form) => {
         void this.openCard(path, form);
       },
-      onAdded: (added, used, openNote) => {
-        this.lastUsed = used;
+      onAdded: (added, openNote) => {
         new Notice(STRINGS.added(added.name, added.id));
         this.scheduleRefresh();
         if (openNote) void this.openCard(added.path);
       },
-    }).open();
+    });
   }
 
   private coverUrl(path: string | null): string | null {

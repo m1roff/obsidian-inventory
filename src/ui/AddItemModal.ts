@@ -89,6 +89,8 @@ export interface AddItemModalOptions {
   readonly defaults: AddItemDefaults;
   /** Where a new item goes when nothing was used before. */
   readonly defaultLocation: () => string | null;
+  /** The item must go to this place: it is shown but cannot be changed (the form was opened from the place's note). */
+  readonly fixedLocation?: string;
   readonly haptics: Haptics;
   /** Restores a form that was left open (e.g. to look at an existing card). */
   readonly initial?: AddItemFormState;
@@ -144,10 +146,12 @@ export class AddItemModal extends Modal {
     this.nameTouched = this.name !== "";
     this.several = restored?.several === true;
     this.kind = this.initial(this.kinds, restored?.kind ?? options.defaults.kind);
-    this.location = this.initial(
-      this.locations,
-      restored?.location || options.defaults.location || (options.defaultLocation() ?? ""),
-    );
+    this.location =
+      options.fixedLocation ??
+      this.initial(
+        this.locations,
+        restored?.location || options.defaults.location || (options.defaultLocation() ?? ""),
+      );
   }
 
   onOpen(): void {
@@ -211,21 +215,29 @@ export class AddItemModal extends Modal {
     });
     this.trackField("quantity");
 
-    new SelectField(this.app, contentEl, {
-      searchThreshold: this.options.searchThreshold,
-      label: STRINGS.fieldLocation,
-      options: () => this.options.references.locations().map(toOption),
-      value: this.location,
-      onChange: (value) => {
-        this.location = value;
-        this.clearFieldErrors("location");
-      },
-      create: {
-        promptTitle: STRINGS.newLocation,
-        create: (name) => this.options.addReference.add("location", name),
-      },
-    });
-    this.trackField("location");
+    if (this.options.fixedLocation !== undefined) {
+      // Added from the place's own note: the place is a given, shown but not editable.
+      new Setting(contentEl)
+        .setName(STRINGS.fieldLocation)
+        .setDesc(STRINGS.fieldLocationFixed)
+        .addText((text) => text.setValue(this.options.fixedLocation ?? "").setDisabled(true));
+    } else {
+      new SelectField(this.app, contentEl, {
+        searchThreshold: this.options.searchThreshold,
+        label: STRINGS.fieldLocation,
+        options: () => this.options.references.locations().map(toOption),
+        value: this.location,
+        onChange: (value) => {
+          this.location = value;
+          this.clearFieldErrors("location");
+        },
+        create: {
+          promptTitle: STRINGS.newLocation,
+          create: (name) => this.options.addReference.add("location", name),
+        },
+      });
+      this.trackField("location");
+    }
 
     new SelectField(this.app, contentEl, {
       searchThreshold: this.options.searchThreshold,

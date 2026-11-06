@@ -5,6 +5,8 @@ import {
   DEFAULT_DASHBOARD_PREFERENCES,
   FOLDED_COUNT_MAX,
   FOLDED_COUNT_MIN,
+  PLACE_ITEMS_ALL,
+  PLACE_ITEMS_MIN,
   SEARCH_THRESHOLD_MAX,
   SEARCH_THRESHOLD_MIN,
 } from "../domain/DashboardPreferences";
@@ -184,6 +186,15 @@ export class InventorySettingTab extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle.setValue(settings.showPlaceCovers).onChange((value) => this.change({ showPlaceCovers: value })),
       );
+    this.addCountSetting(
+      containerEl,
+      STRINGS.placeItemsName,
+      STRINGS.placeItemsDesc,
+      settings.placeItemsShown,
+      (value) => this.change({ placeItemsShown: value }),
+      PLACE_ITEMS_MIN,
+      PLACE_ITEMS_ALL,
+    );
     new Setting(containerEl)
       .setName(STRINGS.placeIdsName)
       .setDesc(STRINGS.placeIdsDesc)

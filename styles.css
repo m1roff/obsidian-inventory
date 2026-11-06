@@ -443,6 +443,38 @@
   white-space: normal;
 }
 
+/* The list of items under the buttons in a place's note */
+.inventory-ui.inventory-ui__bar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  margin: var(--size-4-3) 0;
+}
+
+.inventory-ui .inventory-ui__place-items-head {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui .inventory-ui__place-items-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  margin-left: auto;
+  min-height: 36px;
+  height: auto;
+  border-radius: var(--radius-m);
+  font-weight: var(--font-normal);
+}
+
+.inventory-ui .inventory-ui__place-items-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+}
+
 /* Windows with text fields (see KeyboardGuard.ts) */
 
 /*

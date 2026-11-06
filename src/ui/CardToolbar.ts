@@ -1,9 +1,10 @@
 import { MarkdownView, Plugin, setIcon, WorkspaceLeaf } from "obsidian";
-import { BarButton, BarSource } from "./CardBar";
+import { BarButton, BarPanel, BarSource } from "./CardBar";
 import { INVENTORY_ICON_ID } from "./InventoryIcon";
 import { STRINGS } from "./strings";
 
 const BAR_CLASS = "inventory-ui__card-bar";
+const PANEL_CLASS = "inventory-ui__bar-panel";
 const REFRESH_DELAY_MS = 150;
 
 export interface CardToolbarDeps {
@@ -60,29 +61,65 @@ export class CardToolbar {
       if (!(view instanceof MarkdownView)) continue;
 
       const existing = view.containerEl.querySelector(`.${BAR_CLASS}`);
+      const panelEl = view.containerEl.querySelector(`.${PANEL_CLASS}`);
       const file = view.file;
       // Raw markdown has no properties block to anchor to and no use for the buttons.
       if (!file || this.isSourceMode(view)) {
         existing?.remove();
+        panelEl?.remove();
         continue;
       }
 
       if (existing?.instanceOf(HTMLElement) && !this.dirty) {
         this.place(existing, view);
+        if (panelEl && existing.nextElementSibling !== panelEl) existing.after(panelEl);
         continue;
       }
 
       const buttons = this.buttonsFor(file.path);
       if (!buttons) {
         existing?.remove();
+        panelEl?.remove();
         continue;
       }
 
       const bar = existing?.instanceOf(HTMLElement) ? existing : this.createBar();
       this.place(bar, view);
       this.render(bar, file.path, buttons, leaf);
+      this.syncPanel(bar, view, file.path);
     }
     this.dirty = false;
+  }
+
+  /**
+   * The panel under the bar (the items of a place), if a source has one for this note. A tab
+   * in the background is not drawn: it catches up when it is shown, which fires the events
+   * that bring us here again.
+   */
+  private syncPanel(bar: HTMLElement, view: MarkdownView, path: string): void {
+    const existing = view.containerEl.querySelector(`.${PANEL_CLASS}`);
+    const panel = this.panelFor(path);
+    if (!panel) {
+      existing?.remove();
+      return;
+    }
+
+    const host = existing?.instanceOf(HTMLElement) ? existing : createDiv({ cls: `inventory-ui ${PANEL_CLASS}` });
+    if (host.dataset.path !== path) {
+      // Another note in the same tab: start the panel afresh.
+      host.empty();
+      host.dataset.path = path;
+    }
+    if (bar.nextElementSibling !== host) bar.after(host);
+    if (view.containerEl.isShown()) panel.render(host);
+  }
+
+  private panelFor(path: string): BarPanel | null {
+    for (const source of this.deps.sources) {
+      const panel = source.panelFor?.(path);
+      if (panel) return panel;
+    }
+    return null;
   }
 
   private buttonsFor(path: string): BarButton[] | null {
@@ -160,6 +197,7 @@ export class CardToolbar {
       const view = leaf.view;
       if (view instanceof MarkdownView) {
         view.containerEl.querySelector(`.${BAR_CLASS}`)?.remove();
+        view.containerEl.querySelector(`.${PANEL_CLASS}`)?.remove();
       }
     }
   }
