@@ -1,5 +1,6 @@
 import { InventoryEntry } from "./InventoryEntry";
 import { Place } from "./Place";
+import { PlaceTree } from "./PlaceTree";
 import { SearchQuery, searchablePlace } from "./SearchQuery";
 
 export const LOCATION_SORT_MODES = ["alpha", "added", "updated"] as const;
@@ -47,6 +48,12 @@ export interface LocationTile {
   readonly id: string;
   /** How many different items have units in stock there (not how many units). */
   readonly itemCount: number;
+  /** The name of the place it stands directly inside, or null. */
+  readonly parent: string | null;
+  /** The places it stands inside ("Pantry › Shelf"), or null at the top level. */
+  readonly inside: string | null;
+  /** How many different items have units in stock in the places inside it; null when nothing stands inside it. */
+  readonly nestedCount: number | null;
   /** Vault path of the place's photo, or null. */
   readonly cover: string | null;
   readonly tags: readonly string[];
@@ -57,6 +64,8 @@ export interface LocationTile {
 
 interface Stats {
   itemCount: number;
+  /** The items with units in stock here: an item with several positions in one place is one. */
+  items: Set<InventoryEntry>;
   lastAddedAt: number;
   lastUpdatedAt: number;
 }
@@ -69,6 +78,7 @@ export class LocationBoard {
     preferences: LocationPreferences,
   ): LocationTile[] {
     const stats = this.statsByLocation(entries);
+    const tree = new PlaceTree(places);
     const names = places.map((place) => place.name);
     const pinnedNames = preferences.pinned.filter((name) => names.includes(name));
 
@@ -79,6 +89,9 @@ export class LocationBoard {
         path: place.path,
         id: place.id,
         itemCount: own?.itemCount ?? 0,
+        parent: tree.parentOf(place.name),
+        inside: tree.inside(place.name),
+        nestedCount: tree.hasNested(place.name) ? this.nestedItems(tree.descendants(place.name), stats) : null,
         cover: place.cover,
         tags: place.tags,
         pinned: pinnedNames.includes(place.name),
@@ -105,12 +118,14 @@ export class LocationBoard {
       for (const position of entry.positions) {
         const own = stats.get(position.location) ?? {
           itemCount: 0,
+          items: new Set<InventoryEntry>(),
           lastAddedAt: 0,
           lastUpdatedAt: 0,
         };
         if (position.isAvailable() && !counted.has(position.location)) {
           counted.add(position.location);
           own.itemCount++;
+          own.items.add(entry);
         }
         own.lastAddedAt = Math.max(own.lastAddedAt, position.createdAt);
         own.lastUpdatedAt = Math.max(own.lastUpdatedAt, position.updatedAt);
@@ -118,6 +133,13 @@ export class LocationBoard {
       }
     }
     return stats;
+  }
+
+  /** The different items with units in stock anywhere in these places. */
+  private nestedItems(names: ReadonlySet<string>, stats: ReadonlyMap<string, Stats>): number {
+    const items = new Set<InventoryEntry>();
+    for (const name of names) for (const entry of stats.get(name)?.items ?? []) items.add(entry);
+    return items.size;
   }
 
   private compare(a: LocationTile, b: LocationTile, mode: LocationSortMode, reversed: boolean): number {
@@ -176,9 +198,12 @@ export function movePinned(
 export function entriesInLocation(
   entries: readonly InventoryEntry[],
   location: string,
+  tree: PlaceTree,
 ): InventoryEntry[] {
+  // The place and everything inside it: what lies in a box in the pantry lies in the pantry.
+  const inside = tree.withDescendants(location);
   return entries.filter((entry) =>
-    entry.availablePositions().some((position) => position.location === location),
+    entry.availablePositions().some((position) => inside.has(position.location)),
   );
 }
 

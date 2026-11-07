@@ -1785,3 +1785,49 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 .inventory-ui__search-help li + li {
   margin-top: var(--size-4-1);
 }
+
+/* Where a location stands, and the items in the places inside it. */
+.inventory-ui .inventory-ui__board-tile-inside {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-ui .inventory-ui__board-tile-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.inventory-ui .inventory-ui__board-tile-foot .inventory-ui__board-tile-qty {
+  margin-left: auto;
+}
+
+.inventory-ui .inventory-ui__board-tile-nested {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui .inventory-ui__board-tile-nested .svg-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-tile-inside,
+.inventory-ui .inventory-ui__board-tile.has-cover .inventory-ui__board-tile-nested {
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* "Inside: ..." under the title of the items panel in a location's note. */
+.inventory-ui .inventory-ui__place-inside {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-bottom: var(--size-4-2);
+}

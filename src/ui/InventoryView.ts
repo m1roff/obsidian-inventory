@@ -38,6 +38,7 @@ import { AddItemLauncher } from "./AddItemLauncher";
 import { ItemRow } from "./ItemRow";
 import { LocationBoardPanel } from "./LocationBoardPanel";
 import { NewLocationDialog } from "./NewLocationDialog";
+import { PlaceParentEditor } from "./PlaceParentEditor";
 import { PlaceTagsEditor } from "./PlaceTagsEditor";
 import { PlaceQr } from "./PlaceQr";
 import { scanQrFromPhoto } from "./QrScanner";
@@ -69,6 +70,7 @@ export interface InventoryViewDeps {
   readonly placePhotos: PhotoAttacher;
   /** The window that changes the tags of a location. */
   readonly placeTags: PlaceTagsEditor;
+  readonly placeParent: PlaceParentEditor;
   /** The window that adds a location, with its tags. */
   readonly newLocation: NewLocationDialog;
   readonly haptics: Haptics;
@@ -216,6 +218,7 @@ export class InventoryView extends ItemView {
         },
         photos: this.deps.placePhotos,
         onEditTags: (tile) => this.deps.placeTags.edit(tile),
+        onEditParent: (tile) => this.deps.placeParent.edit(tile),
         haptics: this.deps.haptics,
         coverUrl: (path) => this.coverUrl(path),
         showCovers: () => this.deps.preferences.get().settings.showPlaceCovers,
@@ -479,7 +482,7 @@ export class InventoryView extends ItemView {
     else this.board?.render(withSelectedFirst(shownTiles, this.locationFilter), this.locationFilter);
 
     const pool = this.locationFilter
-      ? entriesInLocation(all, this.locationFilter)
+      ? entriesInLocation(all, this.locationFilter, this.deps.references.placeTree())
       : all;
     const shown = this.deps.sorter.sort(
       this.deps.search.filter(pool, this.query),

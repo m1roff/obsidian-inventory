@@ -1,5 +1,6 @@
 import { App, TFile } from "obsidian";
 import { PlaceIdWriter } from "../domain/PlaceIds";
+import { PlaceParentWriter } from "../domain/PlaceParentService";
 import { PlaceTagWriter } from "../domain/PlaceTagService";
 import { ReferenceKind, ReferenceWriter } from "../domain/AddReferenceService";
 import { ReferenceRenamer } from "../domain/RenameReferenceService";
@@ -9,7 +10,7 @@ import { InventoryFolders } from "./InventoryFolders";
 const LOCATION_BODY = "## Contents\n\n![[Stock positions.base#Current Location]]\n";
 
 /** A kind or location is a small note in the lists folder. */
-export class VaultReferenceWriter implements ReferenceWriter, ReferenceRenamer, PlaceIdWriter, PlaceTagWriter {
+export class VaultReferenceWriter implements ReferenceWriter, ReferenceRenamer, PlaceIdWriter, PlaceTagWriter, PlaceParentWriter {
   constructor(
     private readonly app: App,
     private readonly folders: InventoryFolders,
@@ -47,6 +48,18 @@ export class VaultReferenceWriter implements ReferenceWriter, ReferenceRenamer, 
     if (!(file instanceof TFile)) throw new Error(`No note at ${placePath}`);
     await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       fm.tags = [...tags];
+    });
+  }
+
+  async setParent(placePath: string, parent: string | null): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(placePath);
+    if (!(file instanceof TFile)) throw new Error(`No note at ${placePath}`);
+    // A real link, so Obsidian updates it when the parent note is renamed.
+    const target = parent === null ? null : this.app.vault.getFileByPath(`${this.folders.locations}/${parent}.md`);
+    const link = target instanceof TFile ? this.app.fileManager.generateMarkdownLink(target, placePath) : `[[${parent}]]`;
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+      if (parent === null) delete fm.parent;
+      else fm.parent = link;
     });
   }
 

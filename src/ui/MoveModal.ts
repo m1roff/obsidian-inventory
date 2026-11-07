@@ -147,9 +147,9 @@ export class MoveModal extends Modal {
   /** Locations (alphabetical), then the two ways units leave stock. */
   private destinationOptions(): SelectOption[] {
     return [
-      ...this.options.references.locations().map((location) => ({
-        value: locationValue(location),
-        label: location,
+      ...this.options.references.locationOptions().map((option) => ({
+        value: locationValue(option.value),
+        label: option.label,
       })),
       ...EXITS.map((exit) => ({
         value: exitValue(exit),

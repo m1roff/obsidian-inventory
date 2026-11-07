@@ -159,6 +159,11 @@ export function buildSkeleton(
       baseFile: layout.listsBase,
       viewName: "TagsList",
     }),
+    // The location this one stands inside (a box in the pantry); kinds and tags lists do not use it.
+    field("parent", "PlcPr1", "File", {
+      baseFile: layout.listsBase,
+      viewName: "Locations",
+    }),
   ];
 
   const fileClasses: FileClassSpec[] = [

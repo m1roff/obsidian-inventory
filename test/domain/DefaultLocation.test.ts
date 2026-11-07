@@ -2,16 +2,17 @@ import { describe, expect, it } from "vitest";
 import { AddReferenceError } from "../../src/domain/AddReferenceService";
 import { DefaultLocation, DEFAULT_LOCATION_NAME } from "../../src/domain/DefaultLocation";
 import { RenameReferenceService } from "../../src/domain/RenameReferenceService";
+import { completeLists } from "../helpers/lists";
 
 function setup(initial: string[], name = DEFAULT_LOCATION_NAME, ready = true) {
   const locations = [...initial];
   const store = { value: name };
-  const lists = {
+  const lists = completeLists({
     kinds: () => [],
     tags: () => [],
     locations: () => locations,
     places: () => [],
-  };
+  });
   const adder = {
     add: async (_kind: "kind" | "location" | "tag", n: string) => {
       locations.push(n);

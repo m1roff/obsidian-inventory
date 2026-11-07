@@ -2,7 +2,6 @@ import { App, Modal, Setting } from "obsidian";
 import { AddReferenceService } from "../domain/AddReferenceService";
 import { AddStockRequest } from "../domain/AddStockRequest";
 import { InventoryEntry } from "../domain/InventoryEntry";
-import { SelectOption } from "../domain/OptionList";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { StockError } from "../domain/StockError";
 import { StockService } from "../domain/StockService";
@@ -50,10 +49,7 @@ export class AddStockModal extends Modal {
     new SelectField(this.app, contentEl, {
       searchThreshold: this.options.searchThreshold,
       label: STRINGS.fieldLocation,
-      options: () =>
-        this.options.references
-          .locations()
-          .map((name): SelectOption => ({ value: name, label: name })),
+      options: () => this.options.references.locationOptions(),
       value: this.location,
       onChange: (value) => (this.location = value),
       create: {

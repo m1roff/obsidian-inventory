@@ -1,5 +1,7 @@
 import { App } from "obsidian";
-import { Place } from "../domain/Place";
+import { SelectOption } from "../domain/OptionList";
+import { Place, parsePlaceParent } from "../domain/Place";
+import { PlaceTree } from "../domain/PlaceTree";
 import { parseTagList } from "../domain/TagList";
 import { parseWikiLink } from "../domain/WikiLink";
 import { ReferenceLists } from "../domain/ReferenceLists";
@@ -24,6 +26,15 @@ export class VaultReferenceLists implements ReferenceLists {
     return this.places().map((place) => place.name);
   }
 
+  placeTree(): PlaceTree {
+    return new PlaceTree(this.places());
+  }
+
+  locationOptions(): SelectOption[] {
+    const places = this.places();
+    return new PlaceTree(places).options(places.map((place) => place.name));
+  }
+
   places(): Place[] {
     return this.app.vault
       .getMarkdownFiles()
@@ -38,6 +49,7 @@ export class VaultReferenceLists implements ReferenceLists {
           id: typeof id === "string" ? id.trim() : "",
           cover: link ? (this.app.metadataCache.getFirstLinkpathDest(link.target, file.path)?.path ?? null) : null,
           tags: parseTagList(fm?.tags),
+          parent: parsePlaceParent(fm?.parent),
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

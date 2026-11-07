@@ -6,12 +6,15 @@ import { InventorySorter } from "../domain/InventorySorter";
 import { DashboardPreferencesStore, placeItemLimit } from "../domain/DashboardPreferences";
 import { entriesInLocation } from "../domain/LocationBoard";
 import { Place } from "../domain/Place";
+import { PlaceTree } from "../domain/PlaceTree";
 import { ItemRow } from "./ItemRow";
 import { SearchField } from "./SearchField";
 import { STRINGS } from "./strings";
 
 export interface PlaceItemsDeps {
   readonly repository: InventoryRepository;
+  /** The locations as a tree, read when the panel is drawn. */
+  readonly tree: () => PlaceTree;
   readonly search: InventorySearch;
   readonly sorter: InventorySorter;
   readonly preferences: DashboardPreferencesStore;
@@ -24,6 +27,8 @@ export interface PlaceItemsDeps {
 interface Parts {
   readonly placePath: string;
   readonly count: HTMLElement;
+  /** "Inside: Pantry › Shelf", or hidden at the top level. */
+  readonly inside: HTMLElement;
   readonly searchWrap: HTMLElement;
   readonly search: SearchField;
   readonly list: HTMLElement;
@@ -59,7 +64,12 @@ export class PlaceItemsPanel {
   render(host: HTMLElement, place: Place): void {
     this.current.set(host, place);
     const parts = this.partsOf(host, place);
-    parts.pool = entriesInLocation(this.deps.repository.loadEntries(), place.name);
+    const tree = this.deps.tree();
+    parts.pool = entriesInLocation(this.deps.repository.loadEntries(), place.name, tree);
+    // Where this place stands, so the note says where the box is.
+    const inside = tree.inside(place.name);
+    parts.inside.setText(inside === null ? "" : STRINGS.tileInside(inside));
+    parts.inside.toggleClass("inventory-ui__hidden", inside === null);
     this.draw(parts);
   }
 
@@ -78,6 +88,8 @@ export class PlaceItemsPanel {
       const current = this.current.get(host);
       if (current) this.deps.onAdd(current);
     });
+
+    const inside = host.createDiv({ cls: "inventory-ui__place-inside inventory-ui__hidden" });
 
     // The field and its tag chips share one wrapper, so a place without items can hide them together.
     const searchWrap = host.createDiv();
@@ -101,6 +113,7 @@ export class PlaceItemsPanel {
     const created: Parts = {
       placePath: place.path,
       count,
+      inside,
       searchWrap,
       search,
       list,

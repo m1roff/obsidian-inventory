@@ -226,7 +226,7 @@ export class AddItemModal extends Modal {
       new SelectField(this.app, contentEl, {
         searchThreshold: this.options.searchThreshold,
         label: STRINGS.fieldLocation,
-        options: () => this.options.references.locations().map(toOption),
+        options: () => this.options.references.locationOptions(),
         value: this.location,
         onChange: (value) => {
           this.location = value;

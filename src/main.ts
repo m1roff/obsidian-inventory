@@ -1,6 +1,7 @@
 import { installDevTools } from "dev-tools";
 import { addIcon, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import { AddItemService } from "./domain/AddItemService";
+import { PlaceParentService } from "./domain/PlaceParentService";
 import { PlaceTagService } from "./domain/PlaceTagService";
 import { AddReferenceService } from "./domain/AddReferenceService";
 import { DefaultLocation } from "./domain/DefaultLocation";
@@ -29,6 +30,7 @@ import { FileDebugLog } from "./obsidian/FileDebugLog";
 import { VaultPlaceCoverWriter } from "./obsidian/VaultPlaceCoverWriter";
 import { PhotoAttacher } from "./ui/PhotoAttacher";
 import { NewLocationDialog } from "./ui/NewLocationDialog";
+import { PlaceParentEditor } from "./ui/PlaceParentEditor";
 import { PlaceTagsEditor } from "./ui/PlaceTagsEditor";
 import { VaultPhotoSectionChooser } from "./ui/PhotoSectionChooser";
 import { Haptics } from "./ui/Haptics";
@@ -117,9 +119,11 @@ export default class InventoryUiPlugin extends Plugin {
     const referenceWriter = new VaultReferenceWriter(this.app, folders);
     const addReference = new AddReferenceService(references, referenceWriter, idGenerator);
     const placeTagService = new PlaceTagService(referenceWriter, references, addReference);
+    const placeParentService = new PlaceParentService(referenceWriter, references);
     const newLocation = new NewLocationDialog(this.app, {
       addReference,
       tagService: placeTagService,
+      parentService: placeParentService,
       references,
       entries: () => repository.loadEntries(),
       searchThreshold: () => preferences.get().settings.searchThreshold,
@@ -131,6 +135,12 @@ export default class InventoryUiPlugin extends Plugin {
       references,
       addReference,
       entries: () => repository.loadEntries(),
+      searchThreshold: () => preferences.get().settings.searchThreshold,
+      onSaved: () => this.refreshDashboards(),
+    });
+    const placeParent = new PlaceParentEditor(this.app, {
+      service: placeParentService,
+      references,
       searchThreshold: () => preferences.get().settings.searchThreshold,
       onSaved: () => this.refreshDashboards(),
     });
@@ -238,6 +248,7 @@ export default class InventoryUiPlugin extends Plugin {
           defaultLocation,
           placePhotos,
           placeTags,
+          placeParent,
           newLocation,
           haptics,
           locationBoard: new LocationBoard(),
@@ -297,6 +308,7 @@ export default class InventoryUiPlugin extends Plugin {
     };
     const placeItems = new PlaceItemsPanel({
       repository,
+      tree: () => references.placeTree(),
       search: new InventorySearch(),
       sorter: new InventorySorter(),
       preferences,

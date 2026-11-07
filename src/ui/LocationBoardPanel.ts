@@ -29,6 +29,8 @@ export interface LocationBoardPanelDeps {
   readonly onQr: (tile: LocationTile) => void;
   /** Opens the window that changes the tags of a location. */
   readonly onEditTags: (tile: LocationTile) => void;
+  /** Opens the list that puts a location inside another (or takes it out). */
+  readonly onEditParent: (tile: LocationTile) => void;
   /** Picks, replaces and takes off the tile's photo. */
   readonly photos: PhotoAttacher;
   /** The address an image file can be shown from, or null. */
@@ -165,7 +167,19 @@ export class LocationBoardPanel {
     const top = body.createDiv({ cls: "inventory-ui__board-tile-top" });
     top.createSpan({ cls: "inventory-ui__board-tile-name", text: tile.name });
     if (tile.pinned) setIcon(top.createSpan(), "pin");
-    body.createDiv({
+    // Where it stands, so two boxes in different places do not look alike.
+    if (tile.inside !== null) body.createDiv({ cls: "inventory-ui__board-tile-inside", text: tile.inside });
+    const foot = body.createDiv({ cls: "inventory-ui__board-tile-foot" });
+    // The items in the places inside this one, small, with a box: shown when something stands inside it.
+    if (tile.nestedCount !== null) {
+      const nested = foot.createSpan({
+        cls: "inventory-ui__board-tile-nested",
+        attr: { "aria-label": STRINGS.tileNestedAria(tile.nestedCount) },
+      });
+      setIcon(nested.createSpan(), "box");
+      nested.createSpan({ text: String(tile.nestedCount) });
+    }
+    foot.createDiv({
       cls:
         tile.itemCount > 0
           ? "inventory-ui__board-tile-qty"
@@ -272,6 +286,12 @@ export class LocationBoardPanel {
         .setTitle(tile.tags.length > 0 ? STRINGS.tileTags(tile.tags) : STRINGS.tileAddTags)
         .setIcon("tags")
         .onClick(() => this.deps.onEditTags(tile)),
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle(tile.inside !== null ? STRINGS.tileInside(tile.inside) : STRINGS.tileSetInside)
+        .setIcon("folder-tree")
+        .onClick(() => this.deps.onEditParent(tile)),
     );
     menu.addSeparator();
 

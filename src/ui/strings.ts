@@ -1,5 +1,6 @@
 import { ReferenceErrorCode } from "../domain/AddReferenceService";
 import { AddItemErrorCode } from "../domain/NewItemDraft";
+import { PlaceParentErrorCode } from "../domain/PlaceParentService";
 import { StockErrorCode } from "../domain/StockError";
 import { StockState, StockStateErrorCode } from "../domain/StockState";
 import { IssueCode } from "../domain/structure/StructureReport";
@@ -343,6 +344,20 @@ export const STRINGS = {
   photoRemoved: "Photo removed from the note.",
   tileTags: (tags: readonly string[]): string => `Tags: ${tags.map((tag) => `#${tag}`).join(" ")}`,
   tileAddTags: "Add tags",
+  tileInside: (path: string): string => `Inside: ${path}`,
+  tileSetInside: "Set inside...",
+  tileNestedAria: (count: number): string => `Items in the locations inside: ${count}`,
+  fieldInside: "Inside",
+  insideNone: "- Nothing (top level)",
+  insidePickTitle: (name: string): string => `Put ${name} inside`,
+  insideSaved: (name: string, parent: string | null): string =>
+    parent === null ? `${name} is at the top level now` : `${name} is inside ${parent} now`,
+  placeParentErrors: {
+    "unknown-place": "This location was not found.",
+    "unknown-parent": "The location to put it inside was not found.",
+    self: "A location cannot be inside itself.",
+    cycle: "A location cannot be put inside something that is inside it.",
+  } satisfies Record<PlaceParentErrorCode, string>,
   placeTagsTitle: (name: string): string => `Tags of ${name}`,
   placeTagsSave: "Save",
   placeTagsSaved: "Tags saved",

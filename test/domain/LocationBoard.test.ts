@@ -11,6 +11,7 @@ import {
   togglePinned,
   withSelectedFirst,
 } from "../../src/domain/LocationBoard";
+import { PlaceTree } from "../../src/domain/PlaceTree";
 import { StockPosition } from "../../src/domain/StockPosition";
 import { StockState } from "../../src/domain/StockState";
 
@@ -27,8 +28,9 @@ const locations = ["Shelf", "Box", "Printer", "Empty"];
 const prefs = (patch: Partial<LocationPreferences> = {}): LocationPreferences => ({ ...DEFAULT_LOCATION_PREFERENCES, ...patch });
 const names = (tiles: { name: string }[]) => tiles.map((t) => t.name);
 const board = new LocationBoard();
+const flat = new PlaceTree([]);
 
-const placesOf = (names: string[]) => names.map((name) => ({ name, path: `${name}.md`, id: "", cover: null, tags: [] }));
+const placesOf = (names: string[]) => names.map((name) => ({ name, path: `${name}.md`, id: "", cover: null, tags: [], parent: null }));
 
 describe("LocationBoard", () => {
   it("counts the items that have units in stock there, not the units, and shows empty locations too", () => {
@@ -83,10 +85,10 @@ describe("pinning", () => {
 
 describe("entriesInLocation", () => {
   it("returns items with units in stock there", () => {
-    expect(names(entriesInLocation(entries, "Shelf").map((e) => ({ name: e.item.name })))).toEqual(["Spool"]);
+    expect(names(entriesInLocation(entries, "Shelf", flat).map((e) => ({ name: e.item.name })))).toEqual(["Spool"]);
     // the Key's only unit on the Shelf is consumed
-    expect(entriesInLocation(entries, "Box")).toHaveLength(1);
-    expect(entriesInLocation(entries, "Empty")).toEqual([]);
+    expect(entriesInLocation(entries, "Box", flat)).toHaveLength(1);
+    expect(entriesInLocation(entries, "Empty", flat)).toEqual([]);
   });
 });
 
@@ -129,5 +131,43 @@ describe("withSelectedFirst", () => {
   it("changes nothing without a filter or for an unknown name", () => {
     expect(names(withSelectedFirst(tiles, null))).toEqual(names(tiles));
     expect(names(withSelectedFirst(tiles, "Gone"))).toEqual(names(tiles));
+  });
+});
+
+describe("locations inside locations", () => {
+  const place = (name: string, parent: string | null) => ({
+    name,
+    path: `${name}.md`,
+    id: "",
+    cover: null,
+    tags: [],
+    parent,
+  });
+  // Pantry holds Shelf; Box stands on the Shelf; Printer is on its own.
+  const nested = [place("Pantry", null), place("Shelf", "Pantry"), place("Box", "Shelf"), place("Printer", null)];
+  const tree = new PlaceTree(nested);
+
+  it("a filter on a place shows what lies in the places inside it too", () => {
+    expect(entriesInLocation(entries, "Shelf", tree).map((e) => e.item.name)).toEqual(["Spool", "Key"]);
+    expect(entriesInLocation(entries, "Pantry", tree).map((e) => e.item.name)).toEqual(["Spool", "Key"]);
+    // a box on its own still shows only what is in the box
+    expect(entriesInLocation(entries, "Box", tree).map((e) => e.item.name)).toEqual(["Key"]);
+    expect(entriesInLocation(entries, "Printer", tree).map((e) => e.item.name)).toEqual(["Spool"]);
+  });
+
+  it("tiles say where a place stands and count the items in the places inside it", () => {
+    const tiles = board.tiles(nested, entries, prefs());
+    const byName = (name: string) => tiles.find((t) => t.name === name);
+    expect(byName("Box")).toMatchObject({ parent: "Shelf", inside: "Pantry › Shelf", itemCount: 1, nestedCount: null });
+    // the Shelf holds the Spool itself and has the Key in the Box
+    expect(byName("Shelf")).toMatchObject({ parent: "Pantry", inside: "Pantry", itemCount: 1, nestedCount: 1 });
+    // the Pantry holds nothing itself; below it are the Spool (Shelf) and the Key (Box)
+    expect(byName("Pantry")).toMatchObject({ parent: null, inside: null, itemCount: 0, nestedCount: 2 });
+    expect(byName("Printer")?.nestedCount).toBeNull();
+  });
+
+  it("a place with places inside it but no items in them says zero, not nothing", () => {
+    const tiles = board.tiles([place("Pantry", null), place("Empty box", "Pantry")], [], prefs());
+    expect(tiles.find((t) => t.name === "Pantry")?.nestedCount).toBe(0);
   });
 });

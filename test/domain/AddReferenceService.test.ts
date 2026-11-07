@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { IdGenerator } from "../../src/domain/IdGenerator";
 import { AddReferenceError, AddReferenceService, ReferenceKind, ReferenceWriter } from "../../src/domain/AddReferenceService";
+import { completeLists } from "../helpers/lists";
 
 class FakeWriter implements ReferenceWriter {
   created: [ReferenceKind, string][] = [];
@@ -10,12 +11,12 @@ class FakeWriter implements ReferenceWriter {
     this.ids.push(id);
   }
 }
-const lists = {
+const lists = completeLists({
   kinds: () => ["Tool", "Consumables"],
   tags: () => ["M3"],
   locations: () => ["Shelf"],
-  places: () => [{ name: "Shelf", path: "Shelf.md", id: "LC-HH-111", cover: null, tags: [] }],
-};
+  places: () => [{ name: "Shelf", path: "Shelf.md", id: "LC-HH-111", cover: null, tags: [], parent: null }],
+});
 const ids = new IdGenerator({ nextInt: () => 7 });
 
 async function codeOf(promise: Promise<unknown>): Promise<string> {

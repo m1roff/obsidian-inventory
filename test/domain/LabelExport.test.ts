@@ -3,10 +3,11 @@ import { IdGenerator } from "../../src/domain/IdGenerator";
 import { itemLabelRows, labelsCsv, labelsFileName, LabelSelection, LocationLabelExport } from "../../src/domain/LabelExport";
 import { Place } from "../../src/domain/Place";
 import { PlaceIds } from "../../src/domain/PlaceIds";
+import { completeLists } from "../helpers/lists";
 
-const shelf: Place = { name: "Shelf", path: "Shelf.md", id: "LC-AB-123", cover: null, tags: [] };
-const box: Place = { name: "Box", path: "Box.md", id: "", cover: null, tags: [] };
-const drawer: Place = { name: "Drawer", path: "Drawer.md", id: "", cover: null, tags: [] };
+const shelf: Place = { name: "Shelf", path: "Shelf.md", id: "LC-AB-123", cover: null, tags: [], parent: null };
+const box: Place = { name: "Box", path: "Box.md", id: "", cover: null, tags: [], parent: null };
+const drawer: Place = { name: "Drawer", path: "Drawer.md", id: "", cover: null, tags: [], parent: null };
 
 describe("labelsCsv", () => {
   it("writes a header and one line per label", () => {
@@ -67,7 +68,7 @@ describe("LocationLabelExport", () => {
     let counter = 0;
     const generator = new IdGenerator({ nextInt: (max) => Math.floor(counter++ / 2) % max });
     const places = [shelf, box, drawer];
-    const lists = { kinds: () => [], tags: () => [], locations: () => places.map((p) => p.name), places: () => places };
+    const lists = completeLists({ kinds: () => [], tags: () => [], locations: () => places.map((p) => p.name), places: () => places });
     const writer = {
       async setId(path: string, id: string) {
         written.push([path, id]);

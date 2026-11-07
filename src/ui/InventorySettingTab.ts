@@ -96,7 +96,8 @@ export class InventorySettingTab extends PluginSettingTab {
     this.itemsPanel = itemExportPanel({
       app,
       entries: () => deps.entries(),
-      locations: () => deps.references.locations(),
+      locationOptions: () => deps.references.locationOptions(),
+      placeTree: () => deps.references.placeTree(),
       vaultName: () => app.vault.getName(),
       searchThreshold: () => deps.preferences.get().settings.searchThreshold,
       showSearchHelp: () => deps.preferences.get().settings.showSearchHelp,
@@ -355,7 +356,7 @@ export class InventorySettingTab extends PluginSettingTab {
     const select = new SelectField(this.app, parent, {
       searchThreshold: () => this.deps.preferences.get().settings.searchThreshold,
       label: STRINGS.defaultLocationName,
-      options: () => this.deps.references.locations().map((name) => ({ value: name, label: name })),
+      options: () => this.deps.references.locationOptions(),
       value: current,
       onChange: (name) => this.deps.defaultLocation.choose(name),
     });

@@ -3,7 +3,9 @@ import { InventoryEntry } from "../domain/InventoryEntry";
 import { itemLabelRows, LocationLabelExport } from "../domain/LabelExport";
 import { entriesInLocation } from "../domain/LocationBoard";
 import { Item } from "../domain/Item";
+import { SelectOption } from "../domain/OptionList";
 import { Place } from "../domain/Place";
+import { PlaceTree } from "../domain/PlaceTree";
 import { searchableItem, searchablePlace } from "../domain/SearchQuery";
 import { LabelExportPanel } from "./LabelExportPanel";
 import { SelectField } from "./SelectField";
@@ -36,7 +38,8 @@ export function locationExportPanel(deps: LocationExportDeps): LabelExportPanel<
 export interface ItemExportDeps {
   readonly app: App;
   readonly entries: () => readonly InventoryEntry[];
-  readonly locations: () => string[];
+  readonly locationOptions: () => SelectOption[];
+  readonly placeTree: () => PlaceTree;
   readonly vaultName: () => string;
   readonly searchThreshold: () => number;
   readonly showSearchHelp: () => boolean;
@@ -68,10 +71,9 @@ export function itemExportPanel(deps: ItemExportDeps): LabelExportPanel<Item> {
         options: () => [
           { value: "", label: STRINGS.exportAllLocations },
           ...deps
-            .locations()
+            .locationOptions()
             .slice()
-            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
-            .map((name) => ({ value: name, label: name })),
+            .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" })),
         ],
         value: location,
         onChange: (value) => {
@@ -83,7 +85,7 @@ export function itemExportPanel(deps: ItemExportDeps): LabelExportPanel<Item> {
       field.setting.settingEl.addClass("inventory-ui__select-inline");
     },
     subjects: () => {
-      const pool = location === "" ? entries : entriesInLocation(entries, location);
+      const pool = location === "" ? entries : entriesInLocation(entries, location, deps.placeTree());
       const items = pool.map((entry) => entry.item);
       withoutId = items.filter((item) => item.id.trim() === "").length;
       return items.filter((item) => item.id.trim() !== "").sort(byName);

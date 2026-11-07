@@ -1,16 +1,19 @@
 import { App, Modal, Setting } from "obsidian";
 import { AddReferenceError, AddReferenceService } from "../domain/AddReferenceService";
 import { InventoryEntry } from "../domain/InventoryEntry";
+import { PlaceParentError, PlaceParentService } from "../domain/PlaceParentService";
 import { PlaceTagService } from "../domain/PlaceTagService";
 import { ReferenceLists } from "../domain/ReferenceLists";
 import { mergeTagNames } from "../domain/TagList";
 import { guardKeyboard } from "./KeyboardGuard";
+import { SelectField } from "./SelectField";
 import { TagsField } from "./TagsField";
 import { STRINGS } from "./strings";
 
 export interface NewLocationDialogDeps {
   readonly addReference: AddReferenceService;
   readonly tagService: PlaceTagService;
+  readonly parentService: PlaceParentService;
   readonly references: ReferenceLists;
   readonly entries: () => readonly InventoryEntry[];
   readonly searchThreshold: () => number;
@@ -40,6 +43,8 @@ export class NewLocationDialog {
 class NewLocationModal extends Modal {
   private name = "";
   private tags: string[] = [];
+  /** The location it goes inside; empty for the top level. */
+  private parent = "";
   private several = false;
   private busy = false;
   private nameInput: HTMLInputElement | null = null;
@@ -71,6 +76,18 @@ class NewLocationModal extends Modal {
         }
       });
       window.setTimeout(() => text.inputEl.focus(), 0);
+    });
+
+    // Optional: a box that stands in the pantry says so right here.
+    new SelectField(this.app, contentEl, {
+      searchThreshold: this.deps.searchThreshold,
+      label: STRINGS.fieldInside,
+      options: () => [
+        { value: "", label: STRINGS.insideNone, tail: true },
+        ...this.deps.references.locationOptions(),
+      ],
+      value: this.parent,
+      onChange: (value) => (this.parent = value),
     });
 
     new TagsField(this.app, contentEl, {
@@ -114,6 +131,7 @@ class NewLocationModal extends Modal {
     try {
       const name = await this.deps.addReference.add("location", this.name);
       if (this.tags.length > 0) await this.deps.tagService.save(this.deps.placePath(name), this.tags);
+      if (this.parent !== "") await this.deps.parentService.set(name, this.parent);
       this.deps.onAdded();
       if (this.several) {
         // The next one: the name is empty again, the tags stay.
@@ -129,6 +147,8 @@ class NewLocationModal extends Modal {
     } catch (error) {
       if (error instanceof AddReferenceError) {
         this.errorEl?.setText(STRINGS.referenceErrors[error.code]);
+      } else if (error instanceof PlaceParentError) {
+        this.errorEl?.setText(STRINGS.placeParentErrors[error.code]);
       } else {
         console.error(error);
         this.errorEl?.setText(STRINGS.unexpectedError);
