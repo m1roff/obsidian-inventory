@@ -23,11 +23,15 @@ export const STRINGS = {
   boardEmptyTitle: "Locations",
   boardEmptyHint:
     "No locations yet. A location is a shelf, a box or a room. Add one to see what is stored where.",
+  boardNoMatch: "No locations match the search.",
   boardAddLocation: "Add location",
   outOfStock: "Out of stock",
   openCard: "Open card",
   openInventory: "Inventory dashboard",
 
+  viewLabel: "View",
+  viewList: "List",
+  viewTiles: "Tiles",
   sortLabel: "Sort",
   sortCreated: "Added",
   sortUpdated: "Updated",

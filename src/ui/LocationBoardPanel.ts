@@ -64,15 +64,15 @@ export class LocationBoardPanel {
     private readonly deps: LocationBoardPanelDeps,
   ) {}
 
-  /** Nothing to show (a search left no location): the block goes away until something matches again. */
-  hide(): void {
+  /** The search left no location: the block stays, with a zero and a line saying so, so it is clear the search worked. */
+  renderNoMatch(): void {
     this.el.empty();
-    this.el.addClass("inventory-ui__hidden");
+    this.renderHeader(0, this.deps.preferences.get());
+    this.el.createDiv({ cls: "inventory-ui__empty inventory-ui__board-nomatch", text: STRINGS.boardNoMatch });
   }
 
   render(tiles: LocationTile[], selected: string | null): void {
     this.el.empty();
-    this.el.removeClass("inventory-ui__hidden");
     if (tiles.length === 0) {
       this.renderEmpty();
       return;

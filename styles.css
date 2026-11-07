@@ -1842,3 +1842,144 @@ input.inventory-ui__file-input {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Items view: the switch, and the square tiles */
+.inventory-ui .inventory-ui__view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  min-height: 36px;
+  height: auto;
+  margin-left: var(--size-4-2);
+  padding: 0 var(--size-4-2);
+  border-radius: var(--radius-m);
+}
+
+.inventory-ui .inventory-ui__view-switch .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.inventory-ui .inventory-ui__view-switch-chevron {
+  color: var(--text-faint);
+}
+
+/* In a place's note the add button already takes the free space to the left of it. */
+.inventory-ui .inventory-ui__place-items-view {
+  margin-left: auto;
+}
+
+.inventory-ui .inventory-ui__place-items-view + .inventory-ui__place-items-add {
+  margin-left: 0;
+}
+
+.inventory-ui .inventory-ui__list.is-tiles,
+.inventory-ui .inventory-ui__list-rest.is-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--size-4-2);
+}
+
+/* A phone fits two tiles in a row. */
+.is-mobile .inventory-ui .inventory-ui__list.is-tiles,
+.is-mobile .inventory-ui .inventory-ui__list-rest.is-tiles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The empty-list message, the footer and the bar take the whole row of tiles. */
+.inventory-ui .is-tiles > .inventory-ui__empty,
+.inventory-ui .is-tiles > .inventory-ui__list-footer,
+.inventory-ui .is-tiles > .inventory-ui__list-rest {
+  grid-column: 1 / -1;
+}
+
+.inventory-ui .inventory-ui__tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-width: 0;
+  padding: var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+}
+
+.inventory-ui .inventory-ui__tile .inventory-ui__cover {
+  flex: none;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.inventory-ui .inventory-ui__tile-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--size-4-1);
+  height: auto;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  white-space: normal;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.inventory-ui .inventory-ui__tile-main:hover,
+.inventory-ui .inventory-ui__tile-main:active {
+  background: none;
+  box-shadow: none;
+}
+
+.inventory-ui .inventory-ui__tile-name {
+  font-weight: var(--font-semibold);
+  overflow-wrap: anywhere;
+}
+
+.inventory-ui .inventory-ui__tile-main .inventory-ui__id {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.inventory-ui .inventory-ui__tile-actions {
+  display: flex;
+  gap: var(--size-4-2);
+  margin-top: auto;
+}
+
+.inventory-ui .inventory-ui__tile-actions .inventory-ui__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The sort buttons: the word on a computer, an icon on a phone (there is no room for both). */
+.inventory-ui .inventory-ui__sort-icon {
+  display: none;
+}
+
+.is-mobile .inventory-ui .inventory-ui__sort-icon {
+  display: inline-flex;
+}
+
+.is-mobile .inventory-ui .inventory-ui__sort-text,
+.is-mobile .inventory-ui .inventory-ui__sort-label {
+  display: none;
+}
+
+/* A narrow dashboard (a side pane on a computer) gets the sort icons too, like a phone does. */
+.inventory-ui .inventory-ui__info {
+  container: inventory-info / inline-size;
+}
+
+@container inventory-info (max-width: 380px) {
+  .inventory-ui .inventory-ui__sort-icon {
+    display: inline-flex;
+  }
+
+  .inventory-ui .inventory-ui__sort-text,
+  .inventory-ui .inventory-ui__sort-label {
+    display: none;
+  }
+}

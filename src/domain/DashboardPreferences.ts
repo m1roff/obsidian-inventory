@@ -1,4 +1,5 @@
 import { DEFAULT_QR_STYLE, parseQrStyle, QrStyle } from "./QrStyle";
+import { DEFAULT_ITEMS_VIEW, ItemsView, parseItemsView } from "./ItemsView";
 import { DEFAULT_LOCATION_NAME } from "./DefaultLocation";
 import { hasForbiddenCharacters } from "./NoteName";
 import { LocationPreferences, parseLocationPreferences } from "./LocationBoard";
@@ -61,6 +62,8 @@ export interface DashboardPreferences {
   readonly itemsSort: SortMode;
   /** Runs the items sort against its natural direction (oldest first). */
   readonly itemsSortReversed: boolean;
+  /** Rows or tiles; one choice for the dashboard and for the list in a place's note. */
+  readonly itemsView: ItemsView;
 }
 
 /** Factory state: also what "reset" goes back to. */
@@ -85,6 +88,7 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
   itemsExpanded: false,
   itemsSort: DEFAULT_SORT_MODE,
   itemsSortReversed: false,
+  itemsView: DEFAULT_ITEMS_VIEW,
 };
 
 /** A whole number within the allowed range; anything else gives the default. */
@@ -125,7 +129,7 @@ export function parseDefaultLocation(raw: unknown): string {
 
 export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
   if (typeof raw !== "object" || raw === null) return DEFAULT_DASHBOARD_PREFERENCES;
-  const { settings, locations, itemsExpanded, itemsSort, itemsSortReversed } = raw as Record<string, unknown>;
+  const { settings, locations, itemsExpanded, itemsSort, itemsSortReversed, itemsView } = raw as Record<string, unknown>;
   const own = (typeof settings === "object" && settings !== null ? settings : {}) as Record<
     string,
     unknown
@@ -156,6 +160,7 @@ export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
     itemsExpanded: itemsExpanded === true,
     itemsSort: parseSortMode(itemsSort),
     itemsSortReversed: itemsSortReversed === true,
+    itemsView: parseItemsView(itemsView),
   };
 }
 

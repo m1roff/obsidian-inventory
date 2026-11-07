@@ -82,6 +82,7 @@ describe("settings", () => {
       itemsExpanded: false,
       itemsSort: "created",
       itemsSortReversed: false,
+      itemsView: "list",
     });
     expect(parseDashboardPreferences(DEFAULT_DASHBOARD_PREFERENCES)).toEqual(
       DEFAULT_DASHBOARD_PREFERENCES,
@@ -151,5 +152,13 @@ describe("showSearchHelp setting", () => {
     expect(parseDashboardPreferences({ settings: {} }).settings.showSearchHelp).toBe(true);
     expect(parseDashboardPreferences({ settings: { showSearchHelp: "no" } }).settings.showSearchHelp).toBe(true);
     expect(parseDashboardPreferences({ settings: { showSearchHelp: false } }).settings.showSearchHelp).toBe(false);
+  });
+});
+
+describe("items view", () => {
+  it("is the list by default and ignores nonsense", () => {
+    expect(parseDashboardPreferences({}).itemsView).toBe("list");
+    expect(parseDashboardPreferences({ itemsView: "tiles" }).itemsView).toBe("tiles");
+    expect(parseDashboardPreferences({ itemsView: "cube" }).itemsView).toBe("list");
   });
 });

@@ -43,6 +43,8 @@ import { VaultReferenceWriter } from "./obsidian/VaultReferenceWriter";
 import { CardToolbar } from "./ui/CardToolbar";
 import { ItemBarSource } from "./ui/ItemBarSource";
 import { AddItemLauncher } from "./ui/AddItemLauncher";
+import { openInNewPane } from "./obsidian/CardOpener";
+import { OPEN_HERE, OpenIntent } from "./ui/OpenIntent";
 import { ItemRow } from "./ui/ItemRow";
 import { PlaceBarSource } from "./ui/PlaceBarSource";
 import { PlaceItemsPanel } from "./ui/PlaceItemsPanel";
@@ -303,7 +305,12 @@ export default class InventoryUiPlugin extends Plugin {
     this.addSettingTab(settingTab);
 
     // The rows of the list in a place's note are the dashboard's rows: one class draws both.
-    const openCard = (path: string): void => {
+    const openCard = (path: string, intent: OpenIntent = OPEN_HERE): void => {
+      const file = this.app.vault.getFileByPath(path);
+      if (file && intent.where !== false) {
+        void openInNewPane(this.app, file, intent, null);
+        return;
+      }
       void this.app.workspace.openLinkText(path, "", false);
     };
     const placeItems = new PlaceItemsPanel({

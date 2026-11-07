@@ -13,6 +13,8 @@ import { STRINGS } from "./strings";
 export interface ItemAction {
   readonly id: string;
   readonly label: string;
+  /** The icon that stands for it where there is no room for the label (the tiles). */
+  readonly icon: string;
   isEnabled(entry: InventoryEntry): boolean;
   run(entry: InventoryEntry): Promise<void> | void;
 }
@@ -43,6 +45,7 @@ export class ItemActions {
       {
         id: "add-more",
         label: `+ ${STRINGS.addMore}`,
+        icon: "plus",
         // Also for an item that ran out: this is how it gets restocked.
         isEnabled: () => true,
         run: (entry) => this.addMore(entry),
@@ -50,6 +53,7 @@ export class ItemActions {
       {
         id: "move",
         label: STRINGS.move,
+        icon: "arrow-right-left",
         isEnabled: (entry) => entry.availableQuantity() > 0,
         run: (entry) => this.move(entry),
       },

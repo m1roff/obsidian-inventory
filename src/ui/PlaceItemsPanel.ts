@@ -8,6 +8,7 @@ import { entriesInLocation } from "../domain/LocationBoard";
 import { Place } from "../domain/Place";
 import { PlaceTree } from "../domain/PlaceTree";
 import { ItemRow } from "./ItemRow";
+import { renderItemsViewSwitch } from "./ItemsViewSwitch";
 import { SearchField } from "./SearchField";
 import { STRINGS } from "./strings";
 
@@ -81,6 +82,17 @@ export class PlaceItemsPanel {
     const head = host.createDiv({ cls: "inventory-ui__place-items-head" });
     head.createSpan({ text: STRINGS.placeItemsTitle });
     const count = head.createSpan({ cls: "inventory-ui__board-count" });
+    let drawn: Parts | null = null;
+    // Pushed to the right with the add button: the switch sits just left of it.
+    const switchEl = renderItemsViewSwitch(
+      head,
+      () => this.deps.preferences.get().itemsView,
+      (itemsView) => {
+        this.deps.preferences.set({ ...this.deps.preferences.get(), itemsView });
+        if (drawn) this.draw(drawn);
+      },
+    );
+    switchEl.addClass("inventory-ui__place-items-view");
     const add = head.createEl("button", { cls: "inventory-ui__action inventory-ui__place-items-add" });
     setIcon(add.createSpan(), "plus");
     add.createSpan({ text: STRINGS.addItem });
@@ -123,6 +135,7 @@ export class PlaceItemsPanel {
       expanded: left?.expanded ?? false,
     };
     parts = created;
+    drawn = created;
     this.parts.set(host, created);
     return created;
   }
@@ -145,6 +158,8 @@ export class PlaceItemsPanel {
     parts.searchWrap.toggleClass("inventory-ui__hidden", parts.pool.length === 0);
 
     parts.list.empty();
+    const { itemsView } = this.deps.preferences.get();
+    parts.list.toggleClass("is-tiles", itemsView === "tiles");
     if (parts.pool.length === 0) {
       parts.list.createDiv({ cls: "inventory-ui__empty", text: STRINGS.placeItemsEmpty });
     } else if (sorted.length === 0) {
@@ -153,7 +168,7 @@ export class PlaceItemsPanel {
 
     const limit = placeItemLimit(settings.placeItemsShown);
     const shown = parts.expanded ? sorted : sorted.slice(0, limit);
-    for (const entry of shown) this.deps.row.render(parts.list, entry);
+    for (const entry of shown) this.deps.row.render(parts.list, entry, itemsView);
 
     parts.footer.empty();
     if (sorted.length > limit) {

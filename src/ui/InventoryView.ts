@@ -35,7 +35,10 @@ import {
 import { ItemActions } from "./ItemActions";
 import type { SettingsTab } from "./InventorySettingTab";
 import { AddItemLauncher } from "./AddItemLauncher";
+import { openInNewPane } from "../obsidian/CardOpener";
 import { ItemRow } from "./ItemRow";
+import { OPEN_HERE, OpenIntent } from "./OpenIntent";
+import { renderItemsViewSwitch } from "./ItemsViewSwitch";
 import { LocationBoardPanel } from "./LocationBoardPanel";
 import { NewLocationDialog } from "./NewLocationDialog";
 import { PlaceParentEditor } from "./PlaceParentEditor";
@@ -117,8 +120,8 @@ export class InventoryView extends ItemView {
     this.rows = new ItemRow({
       states: () => deps.states(),
       actions: deps.actions,
-      openCard: (path) => {
-        void this.openCard(path);
+      openCard: (path, intent) => {
+        void this.openCard(path, null, intent);
       },
       coverUrl: (path) => this.coverUrl(path),
       onChanged: () => this.scheduleRefresh(),
@@ -376,17 +379,19 @@ export class InventoryView extends ItemView {
     });
     group.createSpan({ cls: "inventory-ui__sort-label", text: STRINGS.sortLabel });
 
-    const options: [SortMode, string, string][] = [
-      ["created", STRINGS.sortCreated, STRINGS.sortCreatedHint],
-      ["updated", STRINGS.sortUpdated, STRINGS.sortUpdatedHint],
+    // The icon replaces the word on a phone (the CSS shows one or the other).
+    const options: [SortMode, string, string, string][] = [
+      ["created", STRINGS.sortCreated, STRINGS.sortCreatedHint, "calendar-plus"],
+      ["updated", STRINGS.sortUpdated, STRINGS.sortUpdatedHint, "calendar-clock"],
     ];
     this.sortButtons.clear();
-    for (const [mode, label, hint] of options) {
+    for (const [mode, label, hint, icon] of options) {
       const button = group.createEl("button", {
         cls: "inventory-ui__sort-button",
         attr: { "aria-label": hint },
       });
-      button.createSpan({ text: label });
+      setIcon(button.createSpan({ cls: "inventory-ui__sort-icon" }), icon);
+      button.createSpan({ cls: "inventory-ui__sort-text", text: label });
       button.createSpan({ cls: "inventory-ui__sort-arrow" });
       button.addEventListener("click", () => {
         const prefs = this.deps.preferences.get();
@@ -402,6 +407,15 @@ export class InventoryView extends ItemView {
       this.sortButtons.set(mode, button);
     }
     this.updateSortButtons();
+
+    renderItemsViewSwitch(
+      group,
+      () => this.deps.preferences.get().itemsView,
+      (itemsView) => {
+        this.deps.preferences.set({ ...this.deps.preferences.get(), itemsView });
+        this.repaint();
+      },
+    );
   }
 
   private updateSortButtons(): void {
@@ -476,9 +490,10 @@ export class InventoryView extends ItemView {
     if (this.locationFilter && !tiles.some((t) => t.name === this.locationFilter)) {
       this.locationFilter = null;
     }
+    // A search that matches no location keeps the block, showing zero (hiding it looks like a broken search).
     // Tags in the search also narrow the locations, by the tags the places have themselves.
     const shownTiles = tilesMatching(tiles, this.query, this.locationFilter);
-    if (shownTiles.length === 0 && tiles.length > 0) this.board?.hide();
+    if (shownTiles.length === 0 && tiles.length > 0) this.board?.renderNoMatch();
     else this.board?.render(withSelectedFirst(shownTiles, this.locationFilter), this.locationFilter);
 
     const pool = this.locationFilter
@@ -502,6 +517,8 @@ export class InventoryView extends ItemView {
     }
 
     this.listEl.empty();
+    const view = this.deps.preferences.get().itemsView;
+    this.listEl.toggleClass("is-tiles", view === "tiles");
 
     if (shown.length === 0) {
       if (all.length === 0) this.renderEmptyInventory(this.listEl);
@@ -510,7 +527,7 @@ export class InventoryView extends ItemView {
     }
     const firstScreen = settings.foldedItemCount;
     const visible = visibleWhenFolded(shown, expanded, firstScreen);
-    for (const entry of visible.slice(0, firstScreen)) this.rows.render(this.listEl, entry);
+    for (const entry of visible.slice(0, firstScreen)) this.rows.render(this.listEl, entry, view);
 
     if (shown.length <= firstScreen) return;
     if (!expanded) {
@@ -522,7 +539,8 @@ export class InventoryView extends ItemView {
     // screen. A sticky bar cannot rise above its block, so it only shows once the owner has
     // scrolled past the first screen, and never covers the top of the list.
     const rest = this.listEl.createDiv({ cls: "inventory-ui__list-rest" });
-    for (const entry of visible.slice(firstScreen)) this.rows.render(rest, entry);
+    rest.toggleClass("is-tiles", view === "tiles");
+    for (const entry of visible.slice(firstScreen)) this.rows.render(rest, entry, view);
     this.renderListFooter(rest, shown.length, true);
   }
 
@@ -607,9 +625,16 @@ export class InventoryView extends ItemView {
   private async openCard(
     path: string,
     form: AddItemFormState | null = null,
+    /** By default here, replacing the dashboard; otherwise a new tab (split, window) next to it. */
+    intent: OpenIntent = OPEN_HERE,
   ): Promise<void> {
-    this.addDraft = form;
     const file = this.app.vault.getAbstractFileByPath(path);
-    if (file instanceof TFile) await this.leaf.openFile(file);
+    if (!(file instanceof TFile)) return;
+    if (intent.where === false) {
+      this.addDraft = form;
+      await this.leaf.openFile(file);
+      return;
+    }
+    await openInNewPane(this.app, file, intent, this.leaf);
   }
 }
