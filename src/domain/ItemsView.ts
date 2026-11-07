@@ -9,3 +9,12 @@ export const DEFAULT_ITEMS_VIEW: ItemsView = "list";
 export function parseItemsView(raw: unknown): ItemsView {
   return ITEMS_VIEWS.find((view) => view === raw) ?? DEFAULT_ITEMS_VIEW;
 }
+
+/**
+ * How many tiles to show first so the last row is full: `count` rounded up to whole rows.
+ * The rest of the list starts on a new row, so a short last row would leave a gap before it.
+ */
+export function wholeRows(count: number, columns: number): number {
+  if (columns <= 1) return count;
+  return Math.ceil(count / columns) * columns;
+}

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { wholeRows } from "../../src/domain/ItemsView";
 import { DEFAULT_STOCK_STATES } from "../../src/domain/StockState";
 import {
   DEFAULT_DASHBOARD_PREFERENCES,
@@ -160,5 +161,14 @@ describe("items view", () => {
     expect(parseDashboardPreferences({}).itemsView).toBe("list");
     expect(parseDashboardPreferences({ itemsView: "tiles" }).itemsView).toBe("tiles");
     expect(parseDashboardPreferences({ itemsView: "cube" }).itemsView).toBe("list");
+  });
+});
+
+describe("wholeRows", () => {
+  it("rounds the first part up to a full row of tiles", () => {
+    expect(wholeRows(3, 2)).toBe(4);
+    expect(wholeRows(4, 2)).toBe(4);
+    expect(wholeRows(3, 4)).toBe(4);
+    expect(wholeRows(3, 1)).toBe(3);
   });
 });

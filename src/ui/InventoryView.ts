@@ -36,6 +36,7 @@ import { ItemActions } from "./ItemActions";
 import type { SettingsTab } from "./InventorySettingTab";
 import { AddItemLauncher } from "./AddItemLauncher";
 import { openInNewPane } from "../obsidian/CardOpener";
+import { wholeRows } from "../domain/ItemsView";
 import { ItemRow } from "./ItemRow";
 import { OPEN_HERE, OpenIntent } from "./OpenIntent";
 import { renderItemsViewSwitch } from "./ItemsViewSwitch";
@@ -526,8 +527,12 @@ export class InventoryView extends ItemView {
       return;
     }
     const firstScreen = settings.foldedItemCount;
+    // Folded, exactly as many as the setting says. Open, everything is shown anyway and the
+    // split into "first part" and "the rest" is only there for the bottom bar, so with tiles the
+    // first part ends on a full row: the rest starts on a new row and would leave a gap otherwise.
+    const split = expanded && view === "tiles" ? wholeRows(firstScreen, this.tileColumns()) : firstScreen;
     const visible = visibleWhenFolded(shown, expanded, firstScreen);
-    for (const entry of visible.slice(0, firstScreen)) this.rows.render(this.listEl, entry, view);
+    for (const entry of visible.slice(0, split)) this.rows.render(this.listEl, entry, view);
 
     if (shown.length <= firstScreen) return;
     if (!expanded) {
@@ -540,8 +545,15 @@ export class InventoryView extends ItemView {
     // scrolled past the first screen, and never covers the top of the list.
     const rest = this.listEl.createDiv({ cls: "inventory-ui__list-rest" });
     rest.toggleClass("is-tiles", view === "tiles");
-    for (const entry of visible.slice(firstScreen)) this.rows.render(rest, entry, view);
+    for (const entry of visible.slice(split)) this.rows.render(rest, entry, view);
     this.renderListFooter(rest, shown.length, true);
+  }
+
+  /** How many tiles fit in a row now: read once per redraw from the grid itself (the width decides it). */
+  private tileColumns(): number {
+    if (!this.listEl) return 1;
+    const tracks = getComputedStyle(this.listEl).gridTemplateColumns.split(" ").filter((t) => t !== "");
+    return Math.max(1, tracks.length);
   }
 
   /** Nothing in the inventory at all: a hint and the way to the first item. */
