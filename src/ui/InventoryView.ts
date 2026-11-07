@@ -178,6 +178,7 @@ export class InventoryView extends ItemView {
         this.renderList();
       },
       suggestIn: root,
+      showHelp: () => this.deps.preferences.get().settings.showSearchHelp,
     });
 
     const scanButton = toolbar.createEl("button", {
@@ -439,6 +440,7 @@ export class InventoryView extends ItemView {
 
   /** Reads the inventory and draws everything. For changes of the data (notes changed, search). */
   private renderList(): void {
+    this.search?.syncHelp();
     if (!this.listEl || this.inSetup) return;
 
     this.entries = this.deps.repository.loadEntries();

@@ -53,6 +53,58 @@ describe("SearchQuery", () => {
   });
 });
 
+describe("SearchQuery phrases and exclusion", () => {
+  const glue: Searchable = {
+    tags: ["3dprint", "filament"],
+    texts: ["Super glue", "Tube of glue", "Ik. Printed"],
+    states: ["stored"],
+  };
+
+  it("finds a phrase only as it stands inside one text", () => {
+    expect(matches('"super glue"', glue)).toBe(true);
+    expect(matches('"glue super"', glue)).toBe(false);
+    // the words are in two different texts, so as a phrase they are not there
+    expect(matches('"glue ik."', glue)).toBe(false);
+    // but as two plain words they are
+    expect(matches("glue ik.", glue)).toBe(true);
+  });
+
+  it("treats an unclosed quote as a phrase to the end", () => {
+    expect(matches('"super gl', glue)).toBe(true);
+    expect(matches('"super xx', glue)).toBe(false);
+  });
+
+  it("leaves out what is written with a leading minus", () => {
+    expect(matches("-wood", glue)).toBe(true);
+    expect(matches("-glue", glue)).toBe(false);
+    expect(matches('-"super glue"', glue)).toBe(false);
+    expect(matches('-"super wood"', glue)).toBe(true);
+    expect(matches("glue -tube", glue)).toBe(false);
+  });
+
+  it("excludes by tag and state", () => {
+    expect(matches("#3dprint -#filament", glue)).toBe(false);
+    expect(matches("#3dprint -#resin", glue)).toBe(true);
+    expect(matches("-state:stored", glue)).toBe(false);
+    expect(matches("-state:consumed", glue)).toBe(true);
+  });
+
+  it("applies exclusion to a place by name, id and own tags, and ignores states", () => {
+    const place = searchablePlace({ name: "Garage", id: "LC-AB-123", tags: ["tools"] });
+    expect(matches("-garage", place)).toBe(false);
+    expect(matches("-#tools", place)).toBe(false);
+    expect(matches("-#wood", place)).toBe(true);
+    expect(matches("-state:stored", place)).toBe(true);
+  });
+
+  it("does not take a minus inside a word, and a lone minus asks for nothing", () => {
+    const part: Searchable = { tags: [], texts: ["LC-GK-284"] };
+    expect(matches("gk-284", part)).toBe(true);
+    expect(SearchQuery.parse("-").isEmpty).toBe(true);
+    expect(SearchQuery.parse('"" -""').isEmpty).toBe(true);
+  });
+});
+
 describe("suggestTags and withTag", () => {
   const tags = ["garage", "Gardening", "metal", "Garage"];
 
@@ -72,5 +124,11 @@ describe("suggestTags and withTag", () => {
 
   it("puts the chosen tag in place of the word being typed and leaves a space", () => {
     expect(withTag("glue #ga", "garage")).toBe("glue #garage ");
+  });
+
+  it("offers tags to leave out after a minus and keeps the minus", () => {
+    expect(suggestTags("glue -#me", tags, 8)).toEqual(["metal"]);
+    expect(suggestTags("#metal -#m", tags, 8)).toEqual([]);
+    expect(withTag("glue -#me", "metal")).toBe("glue -#metal ");
   });
 });

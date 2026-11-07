@@ -16,6 +16,7 @@ export interface LocationExportDeps {
   readonly places: () => Place[];
   readonly vaultName: () => string;
   readonly exporter: LocationLabelExport;
+  readonly showSearchHelp: () => boolean;
 }
 
 /** The export block for locations. */
@@ -26,6 +27,7 @@ export function locationExportPanel(deps: LocationExportDeps): LabelExportPanel<
     emptyText: STRINGS.exportNoPlaces,
     fileWhat: "locations",
     subjects: () => deps.places().slice().sort(byName),
+    showSearchHelp: deps.showSearchHelp,
     searchable: searchablePlace,
     rows: (chosen) => deps.exporter.rows(chosen, deps.vaultName()),
   });
@@ -37,6 +39,7 @@ export interface ItemExportDeps {
   readonly locations: () => string[];
   readonly vaultName: () => string;
   readonly searchThreshold: () => number;
+  readonly showSearchHelp: () => boolean;
 }
 
 /**
@@ -85,6 +88,7 @@ export function itemExportPanel(deps: ItemExportDeps): LabelExportPanel<Item> {
       withoutId = items.filter((item) => item.id.trim() === "").length;
       return items.filter((item) => item.id.trim() !== "").sort(byName);
     },
+    showSearchHelp: deps.showSearchHelp,
     searchable: searchableItem,
     note: () => (withoutId > 0 ? STRINGS.exportItemsSkipped(withoutId) : null),
     rows: (chosen) => Promise.resolve(itemLabelRows(chosen, deps.vaultName())),

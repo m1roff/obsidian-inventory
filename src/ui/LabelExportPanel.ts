@@ -25,6 +25,8 @@ export interface LabelExportConfig<T extends LabelSubject> {
   readonly drawFilter?: (parent: HTMLElement, redraw: () => void) => void;
   /** The things to list, in the order to show, after the filter. */
   readonly subjects: () => T[];
+  /** Whether the "?" of the search field shows (a setting). */
+  readonly showSearchHelp: () => boolean;
   /** What a search looks at on one thing of the list. */
   readonly searchable: (subject: T) => Searchable;
   /** A line under the list, for what was left out, or null. */
@@ -62,6 +64,7 @@ export class LabelExportPanel<T extends LabelSubject> {
       placeholder: STRINGS.exportSearch,
       initial: this.query,
       tags: () => this.config.subjects().flatMap((subject) => this.config.searchable(subject).tags),
+      showHelp: this.config.showSearchHelp,
       onChange: (query) => {
         this.query = query;
         redraw();

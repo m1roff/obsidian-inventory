@@ -67,7 +67,7 @@ describe("settings", () => {
 
   it("reads the settings and falls back to 3 for missing ones", () => {
     const parsed = parseDashboardPreferences({ settings: { foldedItemCount: 7 } });
-    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false });
+    expect(parsed.settings).toEqual({ foldedItemCount: 7, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false, showSearchHelp: true });
   });
 
   it("reads the remembered item sort and ignores nonsense", () => {
@@ -77,7 +77,7 @@ describe("settings", () => {
 
   it("has factory defaults that a reset can restore", () => {
     expect(DEFAULT_DASHBOARD_PREFERENCES).toEqual({
-      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false },
+      settings: { foldedItemCount: 3, foldedLocationCount: 3, searchThreshold: 5, openOnStart: true, stockStates: DEFAULT_STOCK_STATES, baseFolder: "Inventory", filament: { enabled: false, kind: "Plastic for 3d" }, defaultLocation: "Unsorted", showPlaceCovers: true, haptics: true, qrStyle: "light", placeItemsShown: 10, debugLog: false, showSearchHelp: true },
       locations: { pinned: [], sort: "alpha", reversed: false, expanded: false },
       itemsExpanded: false,
       itemsSort: "created",
@@ -143,5 +143,13 @@ describe("debugLog setting", () => {
     expect(parseDashboardPreferences({ settings: {} }).settings.debugLog).toBe(false);
     expect(parseDashboardPreferences({ settings: { debugLog: "yes" } }).settings.debugLog).toBe(false);
     expect(parseDashboardPreferences({ settings: { debugLog: true } }).settings.debugLog).toBe(true);
+  });
+});
+
+describe("showSearchHelp setting", () => {
+  it("is on unless explicitly off", () => {
+    expect(parseDashboardPreferences({ settings: {} }).settings.showSearchHelp).toBe(true);
+    expect(parseDashboardPreferences({ settings: { showSearchHelp: "no" } }).settings.showSearchHelp).toBe(true);
+    expect(parseDashboardPreferences({ settings: { showSearchHelp: false } }).settings.showSearchHelp).toBe(false);
   });
 });

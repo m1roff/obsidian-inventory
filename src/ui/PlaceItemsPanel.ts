@@ -25,6 +25,7 @@ interface Parts {
   readonly placePath: string;
   readonly count: HTMLElement;
   readonly searchWrap: HTMLElement;
+  readonly search: SearchField;
   readonly list: HTMLElement;
   readonly footer: HTMLElement;
   /** The items of this place as of the last read of the vault: typing filters these, it does not read again. */
@@ -82,7 +83,7 @@ export class PlaceItemsPanel {
     const searchWrap = host.createDiv();
     const left = this.memory.get(place.path);
     let parts: Parts | null = null;
-    new SearchField(searchWrap, {
+    const search = new SearchField(searchWrap, {
       placeholder: STRINGS.placeItemsSearch,
       initial: left?.query ?? "",
       // The tags of the items of this place only: that is what the search narrows here.
@@ -92,6 +93,7 @@ export class PlaceItemsPanel {
         parts.query = query;
         this.draw(parts);
       },
+      showHelp: () => this.deps.preferences.get().settings.showSearchHelp,
     });
     const list = host.createDiv({ cls: "inventory-ui__list inventory-ui__place-items-list" });
     const footer = host.createDiv({ cls: "inventory-ui__place-items-footer" });
@@ -100,6 +102,7 @@ export class PlaceItemsPanel {
       placePath: place.path,
       count,
       searchWrap,
+      search,
       list,
       footer,
       pool: [],
@@ -119,6 +122,7 @@ export class PlaceItemsPanel {
 
   private draw(parts: Parts): void {
     this.remember(parts);
+    parts.search.syncHelp();
     const { settings, itemsSort, itemsSortReversed } = this.deps.preferences.get();
     const found = this.deps.search.filter(parts.pool, parts.query);
     const sorted = this.deps.sorter.sort(found, itemsSort, itemsSortReversed);

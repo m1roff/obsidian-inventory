@@ -91,6 +91,7 @@ export class InventorySettingTab extends PluginSettingTab {
       places: () => deps.references.places(),
       vaultName: () => app.vault.getName(),
       exporter: deps.locationExport,
+      showSearchHelp: () => deps.preferences.get().settings.showSearchHelp,
     });
     this.itemsPanel = itemExportPanel({
       app,
@@ -98,6 +99,7 @@ export class InventorySettingTab extends PluginSettingTab {
       locations: () => deps.references.locations(),
       vaultName: () => app.vault.getName(),
       searchThreshold: () => deps.preferences.get().settings.searchThreshold,
+      showSearchHelp: () => deps.preferences.get().settings.showSearchHelp,
     });
     this.iconPanel = new IconExportPanel(deps.icons);
   }
@@ -151,6 +153,12 @@ export class InventorySettingTab extends PluginSettingTab {
   private renderGeneral(containerEl: HTMLElement, settings: DashboardSettings): void {
     this.addQrStyle(containerEl, settings.qrStyle);
     this.iconPanel.render(containerEl);
+    new Setting(containerEl)
+      .setName(STRINGS.searchHelpName)
+      .setDesc(STRINGS.searchHelpDesc)
+      .addToggle((toggle) =>
+        toggle.setValue(settings.showSearchHelp).onChange((value) => this.change({ showSearchHelp: value })),
+      );
     this.addDebugLog(containerEl, settings.debugLog);
   }
 

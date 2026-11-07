@@ -355,6 +355,19 @@ export const STRINGS = {
   hapticsName: "Touch feedback",
   hapticsDesc:
     "A tiny tick under your finger on a phone or tablet: when you flip a switch or tick a box in this plugin, and while you hold a location tile: the ticks grow until its menu opens. Nothing happens on a computer. Turn it off if you do not like it.",
+  searchHelpName: "Search help button",
+  searchHelpDesc:
+    "A small round ? inside every search field. Tap it and a short note opens: how to search for several words, for an exact phrase, and how to leave something out. Turn it off when you know all that by heart and want the room for the text you type.",
+  searchHelpLabel: "How to search",
+  searchHelpTitle: "How the search works",
+  searchHelpLines: [
+    "Several words: every one of them must be found, in any order and any place (name, id, kind, tags). Typing glue super finds Super glue.",
+    'A phrase in quotes: "super glue" finds only those words next to each other, in that order.',
+    "Leave something out with a minus: -wood, or -\"super glue\".",
+    "A tag: #print has that tag (the start of a tag is enough). -#print leaves out what has it. Tags belong to the thing they are on: a tag of a location is not passed to its items.",
+    "Stock state (items): state:consumed, or -state:consumed to leave those out.",
+    "Example: #3dprint -#filament \"black spool\"",
+  ],
   debugLogName: "Debug log",
   debugLogDesc:
     "When something does not work and you do not see why, switch this on and repeat the action. The plugin then writes down what it does, step by step, while you add a photo. Nothing is written while this is off. Then tap Copy log and send the text to the developer. Leave it off the rest of the time.",

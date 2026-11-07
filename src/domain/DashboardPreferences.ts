@@ -48,6 +48,8 @@ export interface DashboardSettings {
   readonly placeItemsShown: number;
   /** Keep a trace of what the plugin does with photos, for finding out why something failed. Off by default. */
   readonly debugLog: boolean;
+  /** The round "?" in every search field that opens a short help. On by default; for those who know it by heart. */
+  readonly showSearchHelp: boolean;
 }
 
 /** Settings plus what the dashboard remembers between sessions. */
@@ -77,6 +79,7 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
     qrStyle: DEFAULT_QR_STYLE,
     placeItemsShown: DEFAULT_PLACE_ITEMS,
     debugLog: false,
+    showSearchHelp: true,
   },
   locations: parseLocationPreferences(null),
   itemsExpanded: false,
@@ -146,6 +149,8 @@ export function parseDashboardPreferences(raw: unknown): DashboardPreferences {
       placeItemsShown: parsePlaceItemsShown(own.placeItemsShown),
       // Only an explicit "on" turns it on.
       debugLog: own.debugLog === true,
+      // Only an explicit "off" hides it: an old file without the field keeps the default.
+      showSearchHelp: own.showSearchHelp !== false,
     },
     locations: parseLocationPreferences(locations),
     itemsExpanded: itemsExpanded === true,

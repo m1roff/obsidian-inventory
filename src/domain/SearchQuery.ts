@@ -1,5 +1,5 @@
 import { InventoryEntry } from "./InventoryEntry";
-import { queryTags, tagsMatch } from "./TagQuery";
+import { tagsMatch } from "./TagQuery";
 
 export const STATE_PREFIX = "state:";
 
@@ -23,42 +23,101 @@ export interface Searchable {
   readonly states?: readonly string[];
 }
 
+/** What a term of the query looks for. */
+type TermKind = "word" | "phrase" | "tag" | "state";
+
+interface Term {
+  readonly kind: TermKind;
+  /** Lower case, without the quotes, the `#` or the `state:`. */
+  readonly text: string;
+  /** Written with a leading `-`: the thing must NOT have it. */
+  readonly exclude: boolean;
+}
+
 /**
- * The one search of the plugin, whatever list it narrows. Every whitespace-separated word must
- * match: a plain word is found in the texts or the tags; `#word` is the start of one of the own
- * tags; `state:name` is the start of one of the thing's states (spaces in a state's name are
- * written as _) and is ignored by things without states. A lone `#` or `state:` is the start of
- * typing and asks for nothing yet.
+ * Cuts the text into terms. A term is a word, a `"phrase in quotes"` (an unclosed quote runs to
+ * the end, so the list narrows while it is typed), `#tag` or `state:name`, any of them with a
+ * leading `-` to leave out what has it. A `-` alone, `#` alone and `state:` alone are the start of
+ * typing and ask for nothing yet.
+ */
+function terms(raw: string): Term[] {
+  const found: Term[] = [];
+  let i = 0;
+  while (i < raw.length) {
+    if (/\s/.test(raw[i])) {
+      i++;
+      continue;
+    }
+    const exclude = raw[i] === "-" && i + 1 < raw.length && !/\s/.test(raw[i + 1]);
+    if (exclude) i++;
+
+    let text: string;
+    let phrase = false;
+    if (raw[i] === '"') {
+      phrase = true;
+      const close = raw.indexOf('"', i + 1);
+      text = raw.slice(i + 1, close === -1 ? raw.length : close);
+      i = close === -1 ? raw.length : close + 1;
+    } else {
+      let end = i;
+      while (end < raw.length && !/\s/.test(raw[end])) end++;
+      text = raw.slice(i, end);
+      i = end;
+    }
+    text = text.trim().toLowerCase();
+    if (text === "" || text === "-") continue;
+
+    if (phrase) found.push({ kind: "phrase", text, exclude });
+    else if (text.startsWith("#")) {
+      if (text.length > 1) found.push({ kind: "tag", text: text.slice(1), exclude });
+    } else if (text.startsWith(STATE_PREFIX)) {
+      if (text.length > STATE_PREFIX.length) found.push({ kind: "state", text: text.slice(STATE_PREFIX.length), exclude });
+    } else found.push({ kind: "word", text, exclude });
+  }
+  return found;
+}
+
+/**
+ * The one search of the plugin, whatever list it narrows. Every term must hold:
+ * - a plain word is found in the texts or the tags, as part of a word;
+ * - `"a phrase"` is found as it stands, in one text or tag (not across two);
+ * - `#word` is the start of one of the thing's own tags;
+ * - `state:name` is the start of one of its stock states (spaces in a state's name are written
+ *   as _); things without states ignore it;
+ * - a leading `-` turns any of these around: the thing must not have it.
+ * Everything typed without quotes and minus works as it always did.
  */
 export class SearchQuery {
-  private constructor(
-    readonly words: readonly string[],
-    readonly tags: readonly string[],
-    readonly states: readonly string[],
-  ) {}
+  private constructor(private readonly all: readonly Term[]) {}
 
   static parse(raw: string): SearchQuery {
-    const all = raw.toLowerCase().split(/\s+/).filter(Boolean);
-    const states = all
-      .filter((word) => word.startsWith(STATE_PREFIX) && word.length > STATE_PREFIX.length)
-      .map((word) => word.slice(STATE_PREFIX.length));
-    const words = all.filter((word) => !word.startsWith("#") && !word.startsWith(STATE_PREFIX));
-    return new SearchQuery(words, queryTags(raw), states);
+    return new SearchQuery(terms(raw));
   }
 
   get isEmpty(): boolean {
-    return this.words.length === 0 && this.tags.length === 0 && this.states.length === 0;
+    return this.all.length === 0;
   }
 
   matches(target: Searchable): boolean {
-    if (!tagsMatch(target.tags, this.tags)) return false;
-    if (target.states !== undefined) {
-      const own = target.states;
-      if (!this.states.every((state) => own.some((candidate) => candidate.startsWith(state)))) return false;
+    const fields = [...target.texts, ...target.tags].map((field) => field.toLowerCase());
+    const haystack = fields.join("\n");
+    return this.all.every((term) => this.holds(term, target, fields, haystack) !== term.exclude);
+  }
+
+  /** Whether the thing has what the term looks for (before a leading `-` turns it around). */
+  private holds(term: Term, target: Searchable, fields: readonly string[], haystack: string): boolean {
+    switch (term.kind) {
+      case "word":
+        return haystack.includes(term.text);
+      case "phrase":
+        return fields.some((field) => field.includes(term.text));
+      case "tag":
+        return tagsMatch(target.tags, [term.text]);
+      case "state":
+        // A thing without states has nothing to say about them: the term is left out of the match.
+        if (target.states === undefined) return !term.exclude;
+        return target.states.some((state) => state.startsWith(term.text));
     }
-    if (this.words.length === 0) return true;
-    const haystack = [...target.texts, ...target.tags].join("\n").toLowerCase();
-    return this.words.every((word) => haystack.includes(word));
   }
 
   /** The things the query leaves, in their order; everything when the query is empty. */

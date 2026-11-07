@@ -1713,3 +1713,75 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
 .inventory-ui__export .inventory-ui__export-search {
   margin-bottom: var(--size-4-2);
 }
+
+/* The round "?" inside a search field and the note it opens */
+.inventory-ui .inventory-ui__search-wrap .inventory-ui__search-help-button.inventory-ui__search-help-button,
+.inventory-ui__settings .inventory-ui__search-wrap .inventory-ui__search-help-button.inventory-ui__search-help-button {
+  position: absolute;
+  top: 50%;
+  right: var(--size-4-2);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 50%;
+  background: hsla(var(--interactive-accent-hsl), 0.15);
+  color: var(--text-accent);
+  box-shadow: none;
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui .inventory-ui__search-wrap.has-help .inventory-ui__search-help-button.inventory-ui__search-help-button,
+.inventory-ui__settings .inventory-ui__search-wrap.has-help .inventory-ui__search-help-button.inventory-ui__search-help-button {
+  display: flex;
+}
+
+/* With the "?" present the "x" sits to its left, and the text keeps clear of both */
+.inventory-ui .inventory-ui__search-wrap.has-help .inventory-ui__search-clear,
+.inventory-ui__settings .inventory-ui__search-wrap.has-help .inventory-ui__search-clear {
+  right: calc(var(--size-4-2) + 28px + var(--size-4-2));
+}
+
+.inventory-ui .inventory-ui__search-wrap.has-help .inventory-ui__search,
+.inventory-ui__settings .inventory-ui__search-wrap.has-help .inventory-ui__search {
+  padding-right: calc(var(--size-4-2) * 4 + 28px * 2);
+}
+
+.inventory-ui .inventory-ui__search-help,
+.inventory-ui__settings .inventory-ui__search-help {
+  display: none;
+  margin: var(--size-4-1) 0;
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.inventory-ui .inventory-ui__search-help.is-open,
+.inventory-ui__settings .inventory-ui__search-help.is-open {
+  display: block;
+}
+
+.inventory-ui__search-help .inventory-ui__search-help-title {
+  margin-bottom: var(--size-4-1);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.inventory-ui__search-help ul {
+  margin: 0;
+  padding-left: var(--size-4-4);
+}
+
+.inventory-ui__search-help li + li {
+  margin-top: var(--size-4-1);
+}
