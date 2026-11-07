@@ -1831,3 +1831,14 @@ body:not(.is-mobile) .inventory-ui .inventory-ui__board-grid {
   font-size: var(--font-ui-smaller);
   margin-bottom: var(--size-4-2);
 }
+
+/* The photo picker input lives in the page (out of sight) while the system picker is open. */
+input.inventory-ui__file-input {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

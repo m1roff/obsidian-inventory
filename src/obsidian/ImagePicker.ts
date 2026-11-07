@@ -8,6 +8,9 @@ interface WeakReference<T extends object> {
 const WeakRefCtor = (window as unknown as { WeakRef: new <T extends object>(target: T) => WeakReference<T> })
   .WeakRef;
 
+/** The pickers that are open right now: a strong reference so none is collected mid-choice. */
+const aliveInputs = new Set<HTMLInputElement>();
+
 const MAX_SIDE = 1600;
 const JPEG_QUALITY = 0.85;
 
@@ -22,11 +25,19 @@ export function pickImageFiles(multiple: boolean, log: DebugLog = NO_DEBUG_LOG):
     const input = createEl("input", { type: "file" });
     input.accept = "image/*";
     input.multiple = multiple;
+    // A detached input with no strong reference can be thrown away by the garbage collector
+    // while the system picker is open (seen on iOS): `change` then never fires and the whole
+    // flow silently stops. Keep it in the page, out of sight, and in a set, until it is done.
+    input.addClass("inventory-ui__file-input");
+    document.body.appendChild(input);
+    aliveInputs.add(input);
     let settled = false;
     const stopWatching: Array<() => void> = [];
     const finish = (files: File[], how: string): void => {
       if (settled) return;
       settled = true;
+      aliveInputs.delete(input);
+      input.remove();
       for (const stop of stopWatching) stop();
       log.write("picker", how, {
         files: files.map((file) => ({ name: file.name, size: file.size, type: file.type })),
